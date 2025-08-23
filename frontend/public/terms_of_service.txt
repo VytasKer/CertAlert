@@ -1,0 +1,56 @@
+Last Updated: August 12, 2025
+
+Welcome to CertAlert. By accessing or using our website, services, or any related software (collectively referred to as the Service), you agree to be bound by these Terms of Service. Please read them carefully before using CertAlert.
+
+1. Acceptance of Terms
+By creating an account, uploading certificates, or otherwise using the Service, you confirm that you have read, understood, and agree to these Terms. If you do not agree, you must not use the Service.
+
+2. Eligibility
+You must be at least 18 years old or the legal age in your jurisdiction to use the Service. By using CertAlert, you represent that you meet these requirements.
+
+3. Service Description
+CertAlert provides tools for uploading, storing, and managing certificate information. While we aim to ensure the accuracy and availability of our Service, we cannot guarantee uninterrupted or error free operation.
+
+4. User Responsibilities
+You are responsible for:
+
+Providing accurate and up to date information during registration and certificate submission
+
+Maintaining the confidentiality of your account credentials
+
+Complying with all applicable laws and regulations when using the Service
+
+Avoiding the upload of any malicious, unlawful, or infringing content
+
+5. Data and Privacy
+Your use of the Service is also governed by our Privacy Policy. By using CertAlert, you consent to the collection, storage, and processing of your data as described in the Privacy Policy.
+
+6. Prohibited Uses
+You may not use the Service to:
+
+Violate any laws or regulations
+
+Interfere with the security, integrity, or availability of the Service
+
+Gain unauthorized access to other user accounts or data
+
+Upload harmful software, viruses, or scripts
+
+7. Service Modifications and Termination
+We may modify, suspend, or discontinue the Service at any time, with or without notice. We reserve the right to terminate or restrict your account if you violate these Terms.
+
+8. Disclaimer of Warranties
+The Service is provided on an as is and as available basis without warranties of any kind, whether express or implied. CertAlert does not warrant that the Service will be secure, error free, or available at all times.
+
+9. Limitation of Liability
+To the maximum extent permitted by law, CertAlert shall not be liable for any indirect, incidental, consequential, or punitive damages arising from your use of the Service.
+
+10. Governing Law
+These Terms are governed by and construed under the laws of your country or region of residence, without regard to its conflict of laws principles.
+
+11. Changes to the Terms
+We may update these Terms from time to time. Continued use of the Service after changes take effect constitutes your acceptance of the new Terms.
+
+12. Contact Information
+If you have questions about these Terms, please contact us at:
+See below in page "Contact us"

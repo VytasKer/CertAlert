@@ -1,0 +1,60 @@
+Critical for MVP:
+- Beautify web app design:
+--fix and test flow buttons;
+--update cert table to indicate almost expiring certs;
+--add informational tips and warning upon uploading certs.
+- open patreon account.
+--add link to support project.
+- open contribee account.
+--add link to support project.
+
+Bugs:
+-
+
+Next phase:
+- Add filtering to Cert Table in Dashboard page.
+- add dark mode.
+
+Completed:
+--add text and Subscribe button below cert table.
+--add logo and add flow upon clicking on logo (if not logged in, logo sends to start, otherwise, to Dashboard);
+--create logo;
+--find primary color;
+--find secondary color;
+--fix login/register modal;
+- Create Cert Alert gmail (not developing related) and configure in SMTP.
+- User rights hierarchy (level) - free_user, subscribed_user, inactive_user, admin_user.
+- When user is deleting his account, make him inactive (we will keep his info for sometime and later delete him)
+- Display user level in User Information tab.
+--add change password mechanism - pop-up, link sending to user email, link to password change Page, saving new password;
+--add account closure mechanism in Settings tab of profile (upon Login check if inactive_user, then return error description).
+- Add password recovery mechanism (Login/Register pop-up).
+- Add Terms of Service page.
+- Add Privacy Policy page.
+- Add ticks with links to Terms of Service | Privacy Policy pages in Login/Register pop-up.
+- Add Contact Us page.
+- In Dashboard page add restriction to allow only 1 cert upload if free_user and unlimited if subscribed_user or admin_user.
+- Add Subscriptions table to keep track of user subscription (started, ends, etc.)
+- Add scheduler to go through Subscriptions table to check for ending subs.
+- Add email notification system on subscriptions (activated, ending soon, deactivated).
+- If user deactivates subscription, only keep cert with closest valid_to date and delete all other certs.
+- Add Subscribe page.
+--In My Subscriptions tab add table of user subscriptions.
+--add My Subscriptions tab in Profile page.
+- In Admin Panel add Logs, Database, Diagnostics and Settings tabs/pages.
+- Add payment mechanism:
+--connect web app with payment provider (Paypal, PIS service or other).
+--save payment info by user in DB (new table, router APIs, etc.)=
+--Add Version tab: versionize the app.
+- Check for DB and email sending capabilities for production environment.
+- Add Admin Panel - reachable by user with rights admin_user.
+
+Cancelled:
+- add stripe link to support project.
+--add info on alert sending (days before) - not configurable at the moment;
+--user is required to tick them when registering (+ allow for marketing (sending promotions, etc.))
+--update user DB table to include columns has_agreed_terms_service, has_agreed_privacy_policy and has_agreed_marketing
+
+Commands:
+If backend does not run or loop, run this command in Windows PowerShell:
+Get-Process | Where-Object { $_.ProcessName -match "python|uvicorn" } | Stop-Process -Force
