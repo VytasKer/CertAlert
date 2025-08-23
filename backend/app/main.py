@@ -54,9 +54,9 @@ app = FastAPI(
     description="A lightweight API to track certificate expirations, send alerts, and manage user credentials.",
     version="0.1.0",
     contact={
-        "name": "Vytas Kereisis",
+        "name": "CertAlert",
         "url": "https://127.0.0.1:8000/",
-        "email": "vytaske11@gmail.com",
+        "email": "certalertnotifications@gmail.com",
     },
     license_info={
         "name": "MIT",
