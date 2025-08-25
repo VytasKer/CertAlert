@@ -6,6 +6,9 @@ import Footer from '../components/Footer';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function TermsOfService() {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
@@ -31,7 +34,7 @@ export default function TermsOfService() {
         onUpload={() => {
           if (!isLoggedIn) setShowAuthModal(true);
           else if (window.localStorage.getItem('certalert_jwt')) {
-            fetch('/auth/user', {
+            fetch(`${BACKEND_BASE_URL}/auth/user`, {
               headers: { 'Authorization': `Bearer ${window.localStorage.getItem('certalert_jwt')}` }
             })
               .then(res => res.ok ? res.json() : null)

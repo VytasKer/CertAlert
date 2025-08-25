@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function CertTable({ certs = [], blurred, onAction }) {
   const [editId, setEditId] = useState(null)
   const [editValue, setEditValue] = useState("")
@@ -16,7 +19,7 @@ export default function CertTable({ certs = [], blurred, onAction }) {
     setSaving(true)
     try {
       const token = localStorage.getItem('certalert_jwt')
-      const res = await fetch(`/certificates/${cert.id}/name`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/certificates/${cert.id}/name`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -39,7 +42,7 @@ export default function CertTable({ certs = [], blurred, onAction }) {
     setInfoPopup({ open: true, cert: null, loading: true, error: null })
     try {
       const token = localStorage.getItem('certalert_jwt')
-      const res = await fetch(`/certificates/${cert.id}`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/certificates/${cert.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to fetch certificate info')
@@ -67,7 +70,7 @@ export default function CertTable({ certs = [], blurred, onAction }) {
     setDeletePopup(p => ({ ...p, loading: true }))
     try {
       const token = localStorage.getItem('certalert_jwt')
-      const res = await fetch(`/certificates/${deletePopup.cert.id}`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/certificates/${deletePopup.cert.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

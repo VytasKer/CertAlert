@@ -14,5 +14,14 @@ export default defineConfig({
       '/logs': 'http://localhost:8000',
     },
     historyApiFallback: true
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
+  // Ensure proper handling of client-side routing
+  base: './'
 })

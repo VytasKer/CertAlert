@@ -6,6 +6,9 @@ import Footer from '../components/Footer';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function ContactUs() {
   const [email, setEmail] = useState('');
   const [topic, setTopic] = useState('');
@@ -20,7 +23,7 @@ export default function ContactUs() {
   useEffect(() => {
     if (isLoggedIn) {
       const token = localStorage.getItem('certalert_jwt');
-      fetch('/auth/user', {
+      fetch(`${BACKEND_BASE_URL}/auth/user`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.ok ? res.json() : null)
@@ -68,7 +71,7 @@ export default function ContactUs() {
       if (file) {
         formData.append('file', file);
       }
-      const res = await fetch('/auth/contact-query', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/contact-query`, {
         method: 'POST',
         body: formData
       });
@@ -93,7 +96,7 @@ export default function ContactUs() {
           if (!isLoggedIn) setShowAuthModal(true);
           else if (window.localStorage.getItem('certalert_jwt')) {
             // Fetch user info for level
-            fetch('/auth/user', {
+            fetch(`${BACKEND_BASE_URL}/auth/user`, {
               headers: { 'Authorization': `Bearer ${window.localStorage.getItem('certalert_jwt')}` }
             })
               .then(res => res.ok ? res.json() : null)
