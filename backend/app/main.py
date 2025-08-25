@@ -1,6 +1,7 @@
 # backend/app/main.py
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app import users
 from app import models
 from app import certificates
@@ -17,6 +18,10 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from passlib.context import CryptContext
+
+# Import the origin validation middleware
+from middleware.origin_validation import OriginValidationMiddleware
+from app.config import security_config
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -49,20 +54,43 @@ def create_admin_user():
 
 create_admin_user()
 
-app = FastAPI(
-    title="CertAlert API",
-    description="A lightweight API to track certificate expirations, send alerts, and manage user credentials.",
-    version="0.1.0",
-    contact={
+# Configure FastAPI with conditional docs
+app_config = {
+    "title": "CertAlert API",
+    "description": "A lightweight API to track certificate expirations, send alerts, and manage user credentials.",
+    "version": "0.1.0",
+    "contact": {
         "name": "CertAlert",
         "url": "https://127.0.0.1:8000/",
         "email": "certalertnotifications@gmail.com",
     },
-    license_info={
+    "license_info": {
         "name": "MIT",
         "url": "https://opensource.org/licenses/MIT",
     }
+}
+
+# Disable docs in production if configured to do so
+if not security_config.ENABLE_API_DOCS:
+    app_config.update({
+        "docs_url": None,
+        "redoc_url": None,
+        "openapi_url": None
+    })
+
+app = FastAPI(**app_config)
+
+# Configure CORS - this must be added BEFORE other middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=security_config.get_all_allowed_origins(),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
 )
+
+# Add the origin validation middleware AFTER CORS
+app.add_middleware(OriginValidationMiddleware)
 
 app.include_router(users.router)
 app.include_router(certificates.router)

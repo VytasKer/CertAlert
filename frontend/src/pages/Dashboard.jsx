@@ -8,6 +8,9 @@ import { useNavigate } from 'react-router-dom'
 import './Start.css' // Reuse the same styles for consistency
 import RestrictModal from '../components/RestrictModal'
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 function Dashboard() {
   const navigate = useNavigate()
   const [showUpload, setShowUpload] = useState(false)
@@ -23,14 +26,14 @@ function Dashboard() {
     setError(null)
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const resCerts = await fetch('/certificates/user', {
+      const resCerts = await fetch(`${BACKEND_BASE_URL}/certificates/user`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!resCerts.ok) throw new Error('Failed to fetch certificates');
       const certData = await resCerts.json();
       setCerts(certData);
       // Fetch user info
-      const resUser = await fetch('/auth/user', {
+      const resUser = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (resUser.ok) setUser(await resUser.json());

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 function LogViewer() {
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
@@ -9,7 +12,7 @@ function LogViewer() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/logs/app-log');
+      const res = await fetch(`${BACKEND_BASE_URL}/logs/app-log`);
       if (!res.ok) {
         setError('Failed to fetch log: ' + (await res.text()));
         setLoading(false);
@@ -73,7 +76,7 @@ function OverviewViewer() {
     setError('');
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch('/database/overview', {
+      const res = await fetch(`${BACKEND_BASE_URL}/database/overview`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -172,7 +175,7 @@ function TablesViewer() {
     setError('');
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch('/database/tables-info', {
+      const res = await fetch(`${BACKEND_BASE_URL}/database/tables-info`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -241,7 +244,7 @@ export default function AdminDashboard() {
     setResult(null);
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch('/database/run-query', {
+      const res = await fetch(`${BACKEND_BASE_URL}/database/run-query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

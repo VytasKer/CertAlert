@@ -3,6 +3,9 @@ import Footer from '../components/Footer';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -30,7 +33,7 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      const res = await fetch('/auth/reset-password', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, new_password: password, confirm_password: confirmPassword })

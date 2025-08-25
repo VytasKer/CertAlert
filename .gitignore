@@ -20,6 +20,7 @@ Thumbs.db
 
 # Environment variables and secrets
 .env
+.env.production
 
 # Database files (if any)
 *.db

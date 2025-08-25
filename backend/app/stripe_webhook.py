@@ -12,6 +12,15 @@ logger = logging.getLogger("webhook")
 
 load_dotenv()
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+STRIPE_WEBHOOK_SECRET_THIN = os.getenv('STRIPE_WEBHOOK_SECRET_THIN')
+STRIPE_WEBHOOK_SECRET_SNAPSHOT = os.getenv('STRIPE_WEBHOOK_SECRET_SNAPSHOT')
+
+# Create list of all available webhook secrets (remove None values)
+WEBHOOK_SECRETS = [secret for secret in [
+    STRIPE_WEBHOOK_SECRET,
+    STRIPE_WEBHOOK_SECRET_THIN, 
+    STRIPE_WEBHOOK_SECRET_SNAPSHOT
+] if secret]
 
 router = APIRouter(prefix="/stripe", tags=["Stripe"])
 
@@ -21,16 +30,31 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
     event = None
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        logger.error("Invalid payload received at webhook")
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        logger.error("Invalid signature received at webhook")
-        raise HTTPException(status_code=400, detail="Invalid signature")
+    
+    # Try each webhook secret until one works (high availability)
+    verification_successful = False
+    for i, secret in enumerate(WEBHOOK_SECRETS):
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, secret
+            )
+            logger.info(f"Webhook verified successfully with secret #{i+1}")
+            verification_successful = True
+            break
+        except ValueError:
+            logger.error(f"Invalid payload received at webhook (secret #{i+1})")
+            continue  # Try next secret
+        except stripe.error.SignatureVerificationError:
+            logger.warning(f"Invalid signature with secret #{i+1}, trying next secret...")
+            continue  # Try next secret
+    
+    # If all secrets failed, return error
+    if not verification_successful:
+        logger.error("All webhook secret verification attempts failed")
+        if not event:
+            raise HTTPException(status_code=400, detail="Invalid payload")
+        else:
+            raise HTTPException(status_code=400, detail="Invalid signature - all webhook secrets failed")
 
     # Extract session and related info for logging
     session = event['data']['object'] if 'data' in event and 'object' in event['data'] else None

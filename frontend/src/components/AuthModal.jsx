@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function AuthModal({ onClose }) {
   const [mode, setMode] = useState('login')
   const [form, setForm] = useState({ username: '', email: '', password: '', password2: '' })
@@ -21,7 +24,7 @@ export default function AuthModal({ onClose }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/auth/login', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password })
@@ -60,7 +63,7 @@ export default function AuthModal({ onClose }) {
       return
     }
     try {
-      const res = await fetch('/users/register', {
+      const res = await fetch(`${BACKEND_BASE_URL}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: form.username, email: form.email, password: form.password })
@@ -83,7 +86,7 @@ export default function AuthModal({ onClose }) {
     setForgotLoading(true)
     setForgotMsg('')
     try {
-      const res = await fetch('/auth/request-password-reset', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/request-password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotEmail })

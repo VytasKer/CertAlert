@@ -30,6 +30,7 @@ def create_checkout_session(price_id, user_id, success_url, cancel_url):
         client_reference_id=str(user_id),
         success_url=success_url,
         cancel_url=cancel_url,
+        automatic_tax={'enabled': True},  # Enable automatic tax calculation
     )
     return session.url
 

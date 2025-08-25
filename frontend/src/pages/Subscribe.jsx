@@ -7,10 +7,13 @@ import UploadModal from '../components/UploadModal';
 import AuthModal from '../components/AuthModal';
 import './Start.css';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 // Helper to fetch user info
 async function fetchUser(jwt) {
   try {
-    const res = await fetch('/auth/user', {
+    const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
       headers: { 'Authorization': `Bearer ${jwt}` }
     });
     if (!res.ok) return null;
@@ -23,7 +26,7 @@ async function fetchUser(jwt) {
 // Helper to fetch certs
 async function fetchCerts(jwt) {
   try {
-    const res = await fetch('/certificates/user', {
+    const res = await fetch(`${BACKEND_BASE_URL}/certificates/user`, {
       headers: { 'Authorization': `Bearer ${jwt}` }
     });
     if (!res.ok) return [];
@@ -33,10 +36,10 @@ async function fetchCerts(jwt) {
   }
 }
 
-// Stripe Price IDs (should match backend .env)
-const YEARLY_PRICE_ID = 'price_1RwNFiD7J1EUFThdkxXIz9TR';
-const THREE_YEAR_PRICE_ID = 'price_1RwNHKD7J1EUFThdaIHCEMiD';
-const FIVE_YEAR_PRICE_ID = 'price_1RwNI1D7J1EUFThdx2tmypbi';
+// Stripe Price IDs (loaded from environment variables)
+const YEARLY_PRICE_ID = import.meta.env.VITE_STRIPE_YEARLY_PRICE_ID;
+const THREE_YEAR_PRICE_ID = import.meta.env.VITE_STRIPE_THREE_YEAR_PRICE_ID;
+const FIVE_YEAR_PRICE_ID = import.meta.env.VITE_STRIPE_FIVE_YEAR_PRICE_ID;
 
 export default function Subscribe() {
   const navigate = useNavigate();
@@ -86,7 +89,7 @@ export default function Subscribe() {
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
       {showRestrictModal && <RestrictModal open={showRestrictModal} onClose={() => setShowRestrictModal(false)} onSubscribe={() => { setShowRestrictModal(false); navigate('/subscribe'); }} />}
       {showUpload && <UploadModal open={showUpload} onClose={() => setShowUpload(false)} />}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 32, paddingBottom: 32 }}>
+      <div style={{ minHeight: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 32, paddingBottom: 32 }}>
         <h2 style={{ marginBottom: 32 }}>Choose Your Subscription Plan</h2>
         <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', width: '100%' }}>
           {/* Yearly Plan */}
@@ -113,7 +116,7 @@ export default function Subscribe() {
                 if (!user_id) {
                   // Try to fetch user info from backend as fallback
                   try {
-                    const res = await fetch('/auth/user', {
+                    const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
                       headers: { 'Authorization': `Bearer ${jwt}` }
                     });
                     const user = await res.json();
@@ -133,7 +136,7 @@ export default function Subscribe() {
                 // Generate success/cancel URLs
                 const success_url = window.location.origin + '/subscribe-processing';
                 const cancel_url = window.location.origin + '/subscribe-cancel';
-                const res = await fetch('/subscriptions/create-checkout-session', {
+                const res = await fetch(`${BACKEND_BASE_URL}/subscriptions/create-checkout-session`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -179,7 +182,7 @@ export default function Subscribe() {
                 let user_id = localStorage.getItem('certalert_user_id');
                 if (!user_id) {
                   try {
-                    const res = await fetch('/auth/user', {
+                    const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
                       headers: { 'Authorization': `Bearer ${jwt}` }
                     });
                     const user = await res.json();
@@ -196,7 +199,7 @@ export default function Subscribe() {
                 }
                 const success_url = window.location.origin + '/subscribe-processing';
                 const cancel_url = window.location.origin + '/subscribe-cancel';
-                const res = await fetch('/subscriptions/create-checkout-session', {
+                const res = await fetch(`${BACKEND_BASE_URL}/subscriptions/create-checkout-session`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -242,7 +245,7 @@ export default function Subscribe() {
                 let user_id = localStorage.getItem('certalert_user_id');
                 if (!user_id) {
                   try {
-                    const res = await fetch('/auth/user', {
+                    const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
                       headers: { 'Authorization': `Bearer ${jwt}` }
                     });
                     const user = await res.json();
@@ -259,7 +262,7 @@ export default function Subscribe() {
                 }
                 const success_url = window.location.origin + '/subscribe-processing';
                 const cancel_url = window.location.origin + '/subscribe-cancel';
-                const res = await fetch('/subscriptions/create-checkout-session', {
+                const res = await fetch(`${BACKEND_BASE_URL}/subscriptions/create-checkout-session`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',

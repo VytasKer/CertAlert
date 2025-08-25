@@ -1,5 +1,8 @@
 import { useState } from 'react';
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -9,7 +12,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('/auth/login', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -21,7 +24,7 @@ export default function AdminLogin() {
       const data = await res.json();
       localStorage.setItem('certalert_jwt', data.access_token);
       // Fetch user info to check admin status
-      const userRes = await fetch('/auth/user', {
+      const userRes = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
         headers: { 'Authorization': `Bearer ${data.access_token}` }
       });
       if (!userRes.ok) {

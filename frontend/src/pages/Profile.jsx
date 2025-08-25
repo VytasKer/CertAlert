@@ -7,6 +7,10 @@ import ConfirmModal from '../components/ConfirmModal'
 import { useNavigate } from 'react-router-dom'
 import './Start.css'
 import ChangePasswordModal from '../components/ChangePasswordModal'
+import AuthModal from '../components/AuthModal'
+
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
 function Spinner() {
   return <span style={{ marginLeft: 8 }}>⏳</span>;
@@ -27,7 +31,7 @@ export default function Profile() {
     setLoadingSubId(subId);
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`/subscriptions/invoice/${subId}`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/subscriptions/invoice/${subId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Invoice not available');
@@ -50,7 +54,7 @@ export default function Profile() {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem('certalert_jwt');
-        const res = await fetch('/auth/user', {
+        const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Failed to fetch user info');
@@ -68,7 +72,7 @@ export default function Profile() {
     const fetchSubscriptions = async () => {
       try {
         const token = localStorage.getItem('certalert_jwt');
-  const res = await fetch(`/subscriptions/byuser/${user.id}`, {
+        const res = await fetch(`${BACKEND_BASE_URL}/subscriptions/byuser/${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) setSubscriptions(await res.json());
@@ -91,7 +95,7 @@ export default function Profile() {
     setDeactivateError('');
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`/users/deactivate/${user.id}`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/users/deactivate/${user.id}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -118,7 +122,7 @@ export default function Profile() {
     try {
       // For security, trigger backend to send reset email to user email
       const token = localStorage.getItem('certalert_jwt')
-      const res = await fetch('/auth/request-password-reset', {
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/request-password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ email: user.email })

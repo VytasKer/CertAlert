@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
 import './UploadModal.css'
 
+// Get backend base URL from environment
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
+
 export default function UploadModal({ open, onClose, onUploaded }) {
   const [dragActive, setDragActive] = useState(false)
   const [error, setError] = useState(null)
@@ -34,7 +37,7 @@ export default function UploadModal({ open, onClose, onUploaded }) {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('name', certName)
-      const res = await fetch('/certificates/upload', {
+      const res = await fetch(`${BACKEND_BASE_URL}/certificates/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
