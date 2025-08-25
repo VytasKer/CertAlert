@@ -21,7 +21,5 @@ export default defineConfig({
         manualChunks: undefined,
       },
     },
-  },
-  // Ensure proper handling of client-side routing
-  base: './'
+  }
 })
