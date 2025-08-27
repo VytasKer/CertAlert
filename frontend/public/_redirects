@@ -1,14 +1,1 @@
-# Specific routes first
-/admin/login    /index.html   200
-/admin/dashboard    /index.html   200
-/subscribe-processing    /index.html   200
-/dashboard    /index.html   200
-/profile    /index.html   200
-/subscribe    /index.html   200
-/reset-password    /index.html   200
-/terms-of-service    /index.html   200
-/privacy-policy    /index.html   200
-/contact-us    /index.html   200
-
-# Catch-all for other routes
 /*    /index.html   200
