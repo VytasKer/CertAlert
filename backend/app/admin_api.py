@@ -5,19 +5,18 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user
 from app import models
-import sqlite3
+from sqlalchemy import text
 import os
 from sqlalchemy import func
 from dotenv import load_dotenv
 
 load_dotenv()
 ADMIN_LEVEL = os.getenv('ADMIN_LEVEL', 'admin_user')
-DB_PATH = os.getenv('DB_PATH', './certalert.db')
 
 router = APIRouter(prefix="/database", tags=["Database"])
 
 @router.post("/run-query")
-async def run_query(request: Request, current_user: models.User = Depends(get_current_user)):
+async def run_query(request: Request, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     data = await request.json()
     query = data.get('query', '').strip()
     if not query.lower().startswith('select'):
@@ -25,34 +24,39 @@ async def run_query(request: Request, current_user: models.User = Depends(get_cu
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(query)
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
-        conn.close()
-        return {"columns": columns, "rows": rows}
+        result = db.execute(text(query))
+        columns = list(result.keys())
+        rows = result.fetchall()
+        return {"columns": columns, "rows": [list(row) for row in rows]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-# API to list all tables and their columns/properties
+# API to list all tables and their columns/properties  
 @router.get("/tables-info")
-async def get_tables_info(current_user: models.User = Depends(get_current_user)):
+async def get_tables_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        # Get all table names
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
-        tables = [row[0] for row in cursor.fetchall()]
-        result = {}
+        # Get all table names from PostgreSQL information_schema
+        result = db.execute(text("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """))
+        tables = [row[0] for row in result.fetchall()]
+        
+        table_info = {}
         for table in tables:
-            cursor.execute(f"PRAGMA table_info({table});")
-            columns = cursor.fetchall()
-            result[table] = columns
-        conn.close()
-        return result
+            # Get column information for each table
+            column_result = db.execute(text(f"""
+                SELECT column_name, data_type, is_nullable, column_default
+                FROM information_schema.columns 
+                WHERE table_name = '{table}'
+                ORDER BY ordinal_position
+            """))
+            table_info[table] = [list(row) for row in column_result.fetchall()]
+        
+        return table_info
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

@@ -29,32 +29,50 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     logger.info("Received webhook request at /stripe/webhook")
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
+    logger.info(f"Signature header: {sig_header[:50]}..." if sig_header else "No signature header")
+    logger.info(f"Available webhook secrets: {len(WEBHOOK_SECRETS)}")
+    
     event = None
     
-    # Try each webhook secret until one works (high availability)
-    verification_successful = False
-    for i, secret in enumerate(WEBHOOK_SECRETS):
+    # Development mode: Skip signature verification if no secrets available
+    dev_mode = os.getenv('DEV_MODE', 'false').lower() == 'true'
+    if dev_mode and not WEBHOOK_SECRETS:
+        logger.warning("DEV_MODE: Skipping webhook signature verification (no secrets configured)")
         try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, secret
-            )
-            logger.info(f"Webhook verified successfully with secret #{i+1}")
-            verification_successful = True
-            break
-        except ValueError:
-            logger.error(f"Invalid payload received at webhook (secret #{i+1})")
-            continue  # Try next secret
-        except stripe.error.SignatureVerificationError:
-            logger.warning(f"Invalid signature with secret #{i+1}, trying next secret...")
-            continue  # Try next secret
-    
-    # If all secrets failed, return error
-    if not verification_successful:
-        logger.error("All webhook secret verification attempts failed")
-        if not event:
-            raise HTTPException(status_code=400, detail="Invalid payload")
-        else:
-            raise HTTPException(status_code=400, detail="Invalid signature - all webhook secrets failed")
+            import json
+            event = json.loads(payload.decode())
+        except Exception as e:
+            logger.error(f"Failed to parse webhook payload: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    else:
+        # Try each webhook secret until one works (high availability)
+        verification_successful = False
+        for i, secret in enumerate(WEBHOOK_SECRETS):
+            logger.info(f"Trying webhook secret #{i+1}: {secret[:10]}...")
+            try:
+                event = stripe.Webhook.construct_event(
+                    payload, sig_header, secret
+                )
+                logger.info(f"Webhook verified successfully with secret #{i+1}")
+                verification_successful = True
+                break
+            except ValueError as e:
+                logger.error(f"Invalid payload received at webhook (secret #{i+1}): {str(e)}")
+                continue  # Try next secret
+            except stripe.error.SignatureVerificationError as e:
+                logger.warning(f"Invalid signature with secret #{i+1}: {str(e)}")
+                continue  # Try next secret
+            except Exception as e:
+                logger.error(f"Unexpected error with secret #{i+1}: {str(e)}")
+                continue
+        
+        # If all secrets failed, return error
+        if not verification_successful:
+            logger.error("All webhook secret verification attempts failed")
+            if sig_header is None:
+                raise HTTPException(status_code=400, detail="Missing Stripe signature header")
+            else:
+                raise HTTPException(status_code=400, detail="Invalid signature - all webhook secrets failed")
 
     # Extract session and related info for logging
     session = event['data']['object'] if 'data' in event and 'object' in event['data'] else None

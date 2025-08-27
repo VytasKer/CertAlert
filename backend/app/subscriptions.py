@@ -243,7 +243,7 @@ async def create_stripe_checkout(request: Request, data: dict, db: Session = Dep
         logger.error(f"Error creating Stripe checkout session: {e}")
         raise HTTPException(status_code=500, detail="Failed to create Stripe checkout session")
     
-# GET: Download Stripe invoice for subscription
+# GET: Download Stripe invoice/receipt for subscription
 @router.get("/invoice/{sub_id}")
 def download_invoice(sub_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     sub = db.query(models.Subscription).filter(models.Subscription.sub_id == sub_id).first()
@@ -260,5 +260,5 @@ def download_invoice(sub_id: int, db: Session = Depends(get_db), current_user: m
         raise HTTPException(status_code=404, detail="No Stripe session ID for this subscription.")
     invoice_pdf_url = get_invoice_pdf_url(stripe_session_id)
     if not invoice_pdf_url:
-        raise HTTPException(status_code=404, detail="No invoice found for this subscription.")
+        raise HTTPException(status_code=404, detail="No invoice or receipt found for this subscription.")
     return {"invoice_pdf_url": invoice_pdf_url}

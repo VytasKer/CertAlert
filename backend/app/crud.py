@@ -10,9 +10,10 @@ from app.logging_config import logger
 import random
 
 def generate_unique_user_id(db: Session):
-    # 10-digit number, not starting with 0
+    # Generate 9-digit number to stay within PostgreSQL integer range (max 2,147,483,647)
+    # Range: 100,000,000 to 999,999,999
     while True:
-        user_id = random.randint(10**9, 10**10 - 1)
+        user_id = random.randint(100_000_000, 999_999_999)
         if not db.query(models.User).filter(models.User.id == user_id).first():
             return user_id
 
