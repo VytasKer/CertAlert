@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run create-spa-fallbacks",
-    "create-spa-fallbacks": "copy dist\\index.html dist\\404.html && copy dist\\index.html dist\\200.html && (mkdir dist\\admin 2>nul || echo admin dir exists) && copy dist\\index.html dist\\admin\\index.html && (mkdir dist\\dashboard 2>nul || echo dashboard dir exists) && copy dist\\index.html dist\\dashboard\\index.html && (mkdir dist\\profile 2>nul || echo profile dir exists) && copy dist\\index.html dist\\profile\\index.html",
+    "create-spa-fallbacks": "node create-spa-fallbacks.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
