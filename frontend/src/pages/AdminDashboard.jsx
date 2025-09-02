@@ -106,12 +106,367 @@ function LogViewer() {
   );
 }
 
+function TrafficAnalytics() {
+  const [todayStats, setTodayStats] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dailyStats, setDailyStats] = useState(null);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [summaryStats, setSummaryStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchTodayStats = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/traffic/stats/today`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch today's stats: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      setTodayStats(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching today stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDailyStats = async (date) => {
+    try {
+      setLoading(true);
+      setError('');
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/traffic/stats/${date}`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch stats for ${date}: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      setDailyStats(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching daily stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableDates = async () => {
+    try {
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/traffic/dates`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableDates(data.available_dates || []);
+      }
+    } catch (err) {
+      console.error('Error fetching available dates:', err);
+    }
+  };
+
+  const fetchSummaryStats = async () => {
+    try {
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/traffic/stats/summary/7`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setSummaryStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching summary stats:', err);
+    }
+  };
+
+  const downloadRawLogs = async (date) => {
+    try {
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/traffic/logs/${date}`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      
+      if (!res.ok) {
+        setError(`Failed to download logs for ${date}: ${res.status}`);
+        return;
+      }
+      
+      const logData = await res.text();
+      
+      // Create download
+      const blob = new Blob([logData], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `traffic-${date}.log`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (err) {
+      setError(err.message);
+      console.error('Error downloading logs:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTodayStats();
+    fetchAvailableDates();
+    fetchSummaryStats();
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchDailyStats(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const formatNumber = (num) => {
+    return num?.toLocaleString() || '0';
+  };
+
+  const StatCard = ({ title, value, subtitle, color = '#2563eb' }) => (
+    <div style={{
+      background: '#fff',
+      borderRadius: 8,
+      padding: 20,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+      textAlign: 'center',
+      border: `2px solid ${color}`,
+      minWidth: 140
+    }}>
+      <div style={{ fontSize: 24, fontWeight: 'bold', color, marginBottom: 4 }}>
+        {formatNumber(value)}
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
+        {title}
+      </div>
+      {subtitle && (
+        <div style={{ fontSize: 12, color: '#666' }}>
+          {subtitle}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ textAlign: 'left' }}>
+      <h3 style={{ textAlign: 'left', marginBottom: 24 }}>Traffic Analytics</h3>
+      
+      {error && (
+        <div style={{ color: 'red', background: '#fee', padding: 12, borderRadius: 4, marginBottom: 16 }}>
+          {error}
+        </div>
+      )}
+
+      {loading && <div style={{ marginBottom: 16 }}>Loading...</div>}
+
+      {/* Today's Stats */}
+      <div style={{ marginBottom: 32 }}>
+        <h4 style={{ marginBottom: 16 }}>Today's Traffic</h4>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <StatCard 
+            title="Total Requests" 
+            value={todayStats?.total_requests} 
+            subtitle="Today"
+            color="#2563eb"
+          />
+          <StatCard 
+            title="Unique Visitors" 
+            value={todayStats?.unique_visitors} 
+            subtitle="Unique IPs"
+            color="#059669"
+          />
+          <StatCard 
+            title="Avg Response Time" 
+            value={todayStats?.avg_response_time} 
+            subtitle="milliseconds"
+            color="#dc2626"
+          />
+        </div>
+      </div>
+
+      {/* 7-Day Summary */}
+      {summaryStats && (
+        <div style={{ marginBottom: 32 }}>
+          <h4 style={{ marginBottom: 16 }}>Last 7 Days Summary</h4>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <StatCard 
+              title="Total Requests" 
+              value={summaryStats.total_requests} 
+              subtitle="7 days"
+              color="#7c3aed"
+            />
+            <StatCard 
+              title="Unique Visitors" 
+              value={summaryStats.unique_visitors} 
+              subtitle="7 days"
+              color="#ea580c"
+            />
+            <StatCard 
+              title="Daily Average" 
+              value={summaryStats.avg_daily_requests} 
+              subtitle="requests/day"
+              color="#0891b2"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Date Selector & Daily Stats */}
+      <div style={{ marginBottom: 32 }}>
+        <h4 style={{ marginBottom: 16 }}>Daily Analytics</h4>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+          <label>Date:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
+          />
+          <button
+            onClick={() => downloadRawLogs(selectedDate)}
+            style={{
+              padding: '8px 16px',
+              background: '#059669',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+            disabled={!dailyStats?.total_requests}
+          >
+            Download Logs
+          </button>
+        </div>
+
+        {dailyStats && (
+          <div style={{ background: '#fff', borderRadius: 8, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <h5 style={{ marginBottom: 16 }}>Statistics for {selectedDate}</h5>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+              <div>
+                <strong>Total Requests:</strong> {formatNumber(dailyStats.total_requests)}
+              </div>
+              <div>
+                <strong>Unique Visitors:</strong> {formatNumber(dailyStats.unique_visitors)}
+              </div>
+              <div>
+                <strong>Avg Response Time:</strong> {dailyStats.avg_response_time}ms
+              </div>
+            </div>
+
+            {/* Top Pages */}
+            {dailyStats.top_pages?.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h6 style={{ marginBottom: 12 }}>Top Pages</h6>
+                <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8 }}>
+                  {dailyStats.top_pages.slice(0, 10).map((page, index) => (
+                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: 14 }}>{page.path}</span>
+                      <span style={{ fontWeight: 'bold' }}>{formatNumber(page.count)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Status Codes */}
+            {Object.keys(dailyStats.status_codes || {}).length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h6 style={{ marginBottom: 12 }}>HTTP Status Codes</h6>
+                <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8 }}>
+                  {Object.entries(dailyStats.status_codes).map(([status, count]) => (
+                    <div key={status} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ 
+                        color: status.startsWith('2') ? '#059669' : status.startsWith('4') ? '#dc2626' : '#ea580c'
+                      }}>
+                        {status}
+                      </span>
+                      <span>{formatNumber(count)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* HTTP Methods */}
+            {Object.keys(dailyStats.methods || {}).length > 0 && (
+              <div>
+                <h6 style={{ marginBottom: 12 }}>HTTP Methods</h6>
+                <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8 }}>
+                  {Object.entries(dailyStats.methods).map(([method, count]) => (
+                    <div key={method} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{method}</span>
+                      <span>{formatNumber(count)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Available Dates */}
+      {availableDates.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <h4 style={{ marginBottom: 16 }}>Available Log Dates</h4>
+          <div style={{ background: '#f8f9fa', padding: 16, borderRadius: 8 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {availableDates.slice(0, 14).map(date => (
+                <button
+                  key={date}
+                  onClick={() => setSelectedDate(date)}
+                  style={{
+                    padding: '6px 12px',
+                    background: selectedDate === date ? '#2563eb' : '#fff',
+                    color: selectedDate === date ? '#fff' : '#333',
+                    border: '1px solid #ccc',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontSize: 12
+                  }}
+                >
+                  {date}
+                </button>
+              ))}
+            </div>
+            {availableDates.length > 14 && (
+              <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                ... and {availableDates.length - 14} more dates
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const tabs = [
   { key: 'overview', label: 'Overview' },
   { key: 'database', label: 'Database' },
   { key: 'logs', label: 'Logs' },
+  { key: 'traffic', label: 'Traffic Analytics' },
   { key: 'tables', label: 'Database Tables' },
-  { key: 'credits', label: 'App credits' }
+  { key: 'credits', label: 'App Credits' }
 ];
 
 function AppCredits() {
@@ -364,6 +719,7 @@ export default function AdminDashboard() {
       <div style={{ marginLeft: '5vw', width: '80vw', maxWidth: '100%', padding: '48px 40px', overflowX: 'auto' }}>
         {activeTab === 'overview' && <OverviewViewer />}
         {activeTab === 'logs' && <LogViewer />}
+        {activeTab === 'traffic' && <TrafficAnalytics />}
         {activeTab === 'database' && (
           <div>
             <h3>Database Query</h3>

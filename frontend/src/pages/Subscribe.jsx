@@ -89,7 +89,7 @@ export default function Subscribe() {
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
       {showRestrictModal && <RestrictModal open={showRestrictModal} onClose={() => setShowRestrictModal(false)} onSubscribe={() => { setShowRestrictModal(false); navigate('/subscribe'); }} />}
       {showUpload && <UploadModal open={showUpload} onClose={() => setShowUpload(false)} />}
-      <div style={{ minHeight: 'calc(100vh - 180px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 32, paddingBottom: 32 }}>
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 32, paddingBottom: 32 }}>
         <h2 style={{ marginBottom: 32 }}>Choose Your Subscription Plan</h2>
         <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', width: '100%' }}>
           {/* Yearly Plan */}

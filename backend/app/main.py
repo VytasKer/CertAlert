@@ -10,6 +10,7 @@ from app import subscriptions
 from app import stripe_webhook
 from app import admin_api
 from app import logs_api
+from app import traffic_api  # Import traffic API
 from app.database import engine
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.database import SessionLocal  # Adjust import if needed
@@ -22,6 +23,9 @@ from passlib.context import CryptContext
 # Import the origin validation middleware
 from middleware.origin_validation import OriginValidationMiddleware
 from app.config import security_config
+
+# Import traffic logging components (non-intrusive)
+from middleware.traffic_middleware import TrafficLoggingMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -53,6 +57,13 @@ def create_admin_user():
         db.close()
 
 create_admin_user()
+
+# One-time cleanup of old log files (optional - can be removed after deployment)
+try:
+    from app.startup_cleanup import cleanup_old_log_files
+    cleanup_old_log_files()
+except ImportError:
+    pass
 
 # Configure FastAPI with conditional docs
 app_config = {
@@ -92,6 +103,10 @@ app.add_middleware(
 # Add the origin validation middleware AFTER CORS
 app.add_middleware(OriginValidationMiddleware)
 
+# Add traffic logging middleware LAST (to capture all requests)
+# This middleware is completely non-intrusive and won't affect existing functionality
+app.add_middleware(TrafficLoggingMiddleware)
+
 app.include_router(users.router)
 app.include_router(certificates.router)
 app.include_router(auth.router)
@@ -99,6 +114,7 @@ app.include_router(subscriptions.router)
 app.include_router(stripe_webhook.router)
 app.include_router(admin_api.router)
 app.include_router(logs_api.router)
+app.include_router(traffic_api.router)  # Add traffic API routes
 
 @app.get("/", tags=["Root"])  # this creates a route: GET request to "/"
 def read_root():
