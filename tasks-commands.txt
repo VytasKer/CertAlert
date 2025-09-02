@@ -8,9 +8,6 @@ Critical for MVP:
 - open contribee account.
 --add link to support project.
 
-Bugs:
--
-
 Next phase:
 - Add filtering to Cert Table in Dashboard page.
 - add dark mode.

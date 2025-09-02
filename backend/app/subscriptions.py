@@ -78,9 +78,9 @@ def activate_subscription(sub_id: int, db: Session = Depends(get_db), current_us
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found.")
     sub.sub_status = models.SubscriptionStatus.ACTIVATED
-    # Change user level to subscribed_user
+    # Change user level to subscribed_user (but protect admin users)
     user = db.query(models.User).filter(models.User.id == sub.sub_user_id).first()
-    if user:
+    if user and user.level != "admin_user":
         user.level = "subscribed_user"
         db.commit()
         send_activated_email(user, sub)

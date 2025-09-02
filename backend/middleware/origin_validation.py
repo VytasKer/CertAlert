@@ -207,6 +207,12 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(hp) for hp in health_paths):
             return True
         
+        # Skip for webhook endpoints (server-to-server requests without Origin headers)
+        webhook_paths = ['/stripe/webhook', '/webhook', '/webhooks']
+        if any(path.startswith(wp) for wp in webhook_paths):
+            logger.info(f"Webhook request - skipping origin validation: {path}")
+            return True
+        
         # Skip for static files
         static_extensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.woff', '.woff2']
         if any(path.endswith(ext) for ext in static_extensions):

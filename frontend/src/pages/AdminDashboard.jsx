@@ -12,7 +12,12 @@ function LogViewer() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_BASE_URL}/logs/app-log`);
+      const apiKey = import.meta.env.VITE_ADMIN_API_KEY;
+      const res = await fetch(`${BACKEND_BASE_URL}/logs/app-log`, {
+        headers: {
+          'x-api-key': apiKey
+        }
+      });
       if (!res.ok) {
         setError('Failed to fetch log: ' + (await res.text()));
         setLoading(false);
@@ -26,6 +31,36 @@ function LogViewer() {
     setLoading(false);
   };
 
+  const downloadLog = () => {
+    if (!log) {
+      setError('No log data to download. Please refresh first.');
+      return;
+    }
+
+    // Create a blob with the log content
+    const blob = new Blob([log], { type: 'text/plain' });
+    
+    // Create a download URL
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Generate filename with current date and time
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+    link.download = `certalert-app-logs-${timestamp}.txt`;
+    
+    // Trigger the download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     fetchLog();
   }, []);
@@ -33,7 +68,37 @@ function LogViewer() {
   return (
     <div style={{ textAlign: 'left' }}>
       <h3 style={{ textAlign: 'left' }}>Application Logs</h3>
-      <button onClick={fetchLog} style={{ marginBottom: 16, padding: '8px 24px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600 }}>Refresh Log</button>
+      <div style={{ marginBottom: 16, display: 'flex', gap: '12px' }}>
+        <button 
+          onClick={fetchLog} 
+          style={{ 
+            padding: '8px 24px', 
+            background: '#2563eb', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: 4, 
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Refresh Log
+        </button>
+        <button 
+          onClick={downloadLog} 
+          style={{ 
+            padding: '8px 24px', 
+            background: '#059669', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: 4, 
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+          disabled={!log || loading}
+        >
+          Download Log
+        </button>
+      </div>
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
       <pre style={{ background: '#222', color: '#eee', padding: 16, borderRadius: 8, maxHeight: 500, overflowY: 'auto', fontSize: 14, textAlign: 'left' }}>{log}</pre>

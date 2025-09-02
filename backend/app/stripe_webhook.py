@@ -113,7 +113,9 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                 sub.sub_status = models.SubscriptionStatus.ACTIVATED
                 sub.stripe_session_id = stripe_session_id
                 sub.stripe_payment_intent_id = stripe_payment_intent_id
-                user.level = "subscribed_user"
+                # Only change user level if not admin
+                if user.level != "admin_user":
+                    user.level = "subscribed_user"
                 db.commit()
                 logger.info(f"Activated subscription for user {user.id}")
 

@@ -119,6 +119,8 @@ def deactivate_user(
         raise HTTPException(status_code=404, detail="User not found")
     if user.level == "inactive_user":
         raise HTTPException(status_code=400, detail="User already inactive")
+    if user.level == "admin_user":
+        raise HTTPException(status_code=403, detail="Cannot deactivate admin user")
     # Delete all certificates owned by the user
     certs = db.query(models.Certificate).filter(models.Certificate.owner_user_id == user_id).all()
     for cert in certs:
