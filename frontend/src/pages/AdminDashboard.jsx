@@ -661,10 +661,14 @@ export default function AdminDashboard() {
   const [query, setQuery] = useState('SELECT * FROM users');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleRunQuery = async () => {
     setError('');
     setResult(null);
+    setCurrentPage(1); // Reset to first page on new query
     try {
       const token = localStorage.getItem('certalert_jwt');
       const res = await fetch(`${BACKEND_BASE_URL}/database/run-query`, {
@@ -683,6 +687,58 @@ export default function AdminDashboard() {
     } catch (e) {
       setError('Query failed');
     }
+  };
+
+  const downloadCSV = () => {
+    if (!result || !result.rows.length) return;
+
+    setIsDownloading(true);
+    try {
+      // Create CSV content
+      const csvHeaders = result.columns.join(',');
+      const csvRows = result.rows.map(row => 
+        row.map(cell => {
+          // Handle JSON objects and null values
+          if (cell === null || cell === undefined) return '';
+          if (typeof cell === 'object') return `"${JSON.stringify(cell).replace(/"/g, '""')}"`;
+          if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+            return `"${cell.replace(/"/g, '""')}"`;
+          }
+          return cell;
+        }).join(',')
+      );
+      
+      const csvContent = [csvHeaders, ...csvRows].join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `query_results_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Failed to download CSV:', e);
+      setError('Failed to download CSV file');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Pagination logic
+  const getPaginatedRows = () => {
+    if (!result || !result.rows) return [];
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return result.rows.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    if (!result || !result.rows) return 0;
+    return Math.ceil(result.rows.length / rowsPerPage);
   };
 
   const handleLogout = () => {
@@ -727,31 +783,121 @@ export default function AdminDashboard() {
           <div>
             <h3>Database Query</h3>
             <textarea value={query} onChange={e => setQuery(e.target.value)} rows={4} style={{ width: '100%', marginBottom: 16, fontSize: 16 }} />
-            <button onClick={handleRunQuery} style={{ padding: '10px 32px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600, fontSize: 16 }}>Run Query</button>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: 16, alignItems: 'center' }}>
+              <button onClick={handleRunQuery} style={{ padding: '10px 32px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, fontWeight: 600, fontSize: 16 }}>Run Query</button>
+              {result && result.rows && result.rows.length > 0 && (
+                <>
+                  <button 
+                    onClick={downloadCSV} 
+                    disabled={isDownloading}
+                    style={{ 
+                      padding: '10px 24px', 
+                      background: isDownloading ? '#9ca3af' : '#059669', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: 4, 
+                      fontWeight: 600, 
+                      fontSize: 16,
+                      cursor: isDownloading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {isDownloading ? 'Downloading...' : 'Download CSV'}
+                  </button>
+                  <span style={{ color: '#6b7280', fontSize: 14 }}>
+                    Total rows: {result.rows.length}
+                  </span>
+                </>
+              )}
+            </div>
             {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
             {result && (
               <div style={{ marginTop: 24 }}>
-                <h4>Results:</h4>
-                <div style={{ overflowX: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h4>Results:</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <label style={{ fontSize: 14, color: '#6b7280' }}>
+                      Rows per page:
+                      <select 
+                        value={rowsPerPage} 
+                        onChange={e => {
+                          setRowsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        style={{ marginLeft: 8, padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: 4 }}
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 16 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr>
+                      <tr style={{ background: '#f9fafb' }}>
                         {result.columns.map(col => (
-                          <th key={col} style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{col}</th>
+                          <th key={col} style={{ borderBottom: '1px solid #e5e7eb', padding: '12px 8px', textAlign: 'left', fontWeight: 600, color: '#374151' }}>{col}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {result.rows.map((row, idx) => (
-                        <tr key={idx}>
+                      {getPaginatedRows().map((row, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
                           {row.map((cell, i) => (
-                            <td key={i} style={{ borderBottom: '1px solid #eee', padding: '8px' }}>{cell}</td>
+                            <td key={i} style={{ padding: '12px 8px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
+                              {cell === null ? (
+                                <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>null</span>
+                              ) : typeof cell === 'object' ? (
+                                <span style={{ color: '#6366f1', cursor: 'pointer' }} title={JSON.stringify(cell, null, 2)}>
+                                  {JSON.stringify(cell)}
+                                </span>
+                              ) : (
+                                String(cell)
+                              )}
+                            </td>
                           ))}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+                {getTotalPages() > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      style={{
+                        padding: '8px 16px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: 4,
+                        background: currentPage === 1 ? '#f9fafb' : '#fff',
+                        color: currentPage === 1 ? '#9ca3af' : '#374151',
+                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      Previous
+                    </button>
+                    <span style={{ padding: '8px 16px', color: '#6b7280' }}>
+                      Page {currentPage} of {getTotalPages()}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(Math.min(getTotalPages(), currentPage + 1))}
+                      disabled={currentPage === getTotalPages()}
+                      style={{
+                        padding: '8px 16px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: 4,
+                        background: currentPage === getTotalPages() ? '#f9fafb' : '#fff',
+                        color: currentPage === getTotalPages() ? '#9ca3af' : '#374151',
+                        cursor: currentPage === getTotalPages() ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
