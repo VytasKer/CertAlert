@@ -137,10 +137,24 @@ export default function AuthModal({ onClose }) {
                   />
                 </div>
                 {error && <div className="error">{error}</div>}
+                {loading && (
+                  <div style={{ color: '#380aab', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                    <div style={{ 
+                      width: 16, 
+                      height: 16, 
+                      border: '2px solid #e5e7eb',
+                      borderTopColor: '#380aab',
+                      borderRadius: '50%',
+                      marginRight: 8,
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Connecting to server, please wait...
+                  </div>
+                )}
                 <button
                   onClick={handleLogin}
                   disabled={loading}
-                  style={{ background: '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 10, cursor: loading ? 'not-allowed' : 'pointer' }}
+                  style={{ background: loading ? '#9ca3af' : '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 10, cursor: loading ? 'not-allowed' : 'pointer' }}
                 >
                   {loading ? 'Logging in...' : 'Login'}
                 </button>
@@ -159,7 +173,23 @@ export default function AuthModal({ onClose }) {
                   onChange={e => setForgotEmail(e.target.value)}
                   style={{ width: '100%', marginBottom: 8 }}
                 />
-                <button onClick={handleForgotPassword} disabled={forgotLoading || !forgotEmail} style={{ width: '100%' }}>Send reset link</button>
+                {forgotLoading && (
+                  <div style={{ color: '#380aab', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                    <div style={{ 
+                      width: 16, 
+                      height: 16, 
+                      border: '2px solid #e5e7eb',
+                      borderTopColor: '#380aab',
+                      borderRadius: '50%',
+                      marginRight: 8,
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    Sending reset link, please wait...
+                  </div>
+                )}
+                <button onClick={handleForgotPassword} disabled={forgotLoading || !forgotEmail} style={{ width: '100%' }}>
+                  {forgotLoading ? 'Sending...' : 'Send reset link'}
+                </button>
                 {forgotMsg && <div style={{ color: '#2563eb', marginTop: 6 }}>{forgotMsg}</div>}
                 <div style={{ marginTop: 6 }}>
                   <span style={{ color: '#888', cursor: 'pointer', fontSize: 14 }} onClick={() => setShowForgot(false)}>Back to login</span>
@@ -230,6 +260,20 @@ export default function AuthModal({ onClose }) {
               </label>
             </div>
             {error && <div className="error">{error}</div>}
+            {loading && (
+              <div style={{ color: '#380aab', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                <div style={{ 
+                  width: 16, 
+                  height: 16, 
+                  border: '2px solid #e5e7eb',
+                  borderTopColor: '#380aab',
+                  borderRadius: '50%',
+                  marginRight: 8,
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                Connecting to server, please wait...
+              </div>
+            )}
             <button
               onClick={handleRegister}
               disabled={loading || !agreed || !form.username || !form.email || !form.password || !form.password2}
@@ -254,6 +298,12 @@ export default function AuthModal({ onClose }) {
           </>
         )}
       </div>
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
