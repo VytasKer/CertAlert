@@ -26,6 +26,7 @@ from app.config import security_config
 
 # Import traffic logging components (non-intrusive)
 from middleware.traffic_middleware import TrafficLoggingMiddleware
+from app.traffic_logger import traffic_logger
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -171,6 +172,8 @@ def run_daily_notifications():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(run_daily_notifications, "interval", days=1)
+# Add traffic log cleanup job (runs daily at 2 AM)
+scheduler.add_job(traffic_logger.cleanup_old_logs, "cron", hour=2, minute=0)
 scheduler.start()
 ## Trigger notifications immediately on backend start (for testing)
 #run_daily_notifications()

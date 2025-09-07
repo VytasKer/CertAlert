@@ -1,7 +1,8 @@
 # backend/app/models.py
 
-from sqlalchemy import Column, Integer, BigInteger, String, Text, DateTime, ForeignKey, func, Enum, Boolean, Float
+from sqlalchemy import Column, Integer, BigInteger, String, Text, DateTime, Date, ForeignKey, func, Enum, Boolean, Float
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSON
 #from sqlalchemy.ext.declarative import declarative_base
 from app.database import Base
 import enum
@@ -91,3 +92,16 @@ class StripeWebhook(Base):
     raw_payload = Column(Text, nullable=True)
     processing_status = Column(String(32), nullable=True)
     error_message = Column(Text, nullable=True)
+
+
+class TrafficLog(Base):
+    """Model for storing traffic logs in database for persistence across restarts"""
+    __tablename__ = "traffic_logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)  # For efficient date-based queries
+    log_data = Column(JSON, nullable=False)  # Store the full JSON log entry
+    ip_hash = Column(String(64), nullable=True, index=True)  # For efficient IP-based queries
+    path = Column(String(255), nullable=True, index=True)  # For efficient path-based queries
+    status_code = Column(Integer, nullable=True, index=True)  # For efficient status queries

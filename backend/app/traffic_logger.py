@@ -3,14 +3,18 @@
 import json
 import hashlib
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Dict, Any, Optional
 import logging
 import os
 from fastapi import Request
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, func
 
 from traffic_config import traffic_config
+from app.database import SessionLocal
+from app.models import TrafficLog
 
 # Configure logging for traffic system
 logging.basicConfig(level=logging.INFO)
@@ -112,7 +116,7 @@ class TrafficLogger:
     
     async def log_request(self, request: Request, response_status: int = None, 
                          response_time_ms: float = None, user_id: Optional[int] = None):
-        """Log a request asynchronously"""
+        """Log a request asynchronously to both file and database"""
         try:
             if not self._should_log_request(request):
                 return
@@ -120,12 +124,45 @@ class TrafficLogger:
             log_entry = self._create_log_entry(request, response_status, response_time_ms, user_id)
             log_filename = self._get_log_filename()
             
-            # Write to file asynchronously
+            # Write to file asynchronously (for development/debugging)
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self._write_log_entry, log_filename, log_entry)
             
+            # Also write to database asynchronously (for production persistence)
+            await loop.run_in_executor(None, self._write_to_database, log_entry)
+            
         except Exception as e:
             logger.error(f"Failed to log traffic entry: {e}")
+    
+    def _write_to_database(self, log_entry: Dict[str, Any]):
+        """Write log entry to database (synchronous)"""
+        try:
+            db = SessionLocal()
+            try:
+                # Parse timestamp
+                timestamp_str = log_entry.get('timestamp', '')
+                if timestamp_str.endswith('Z'):
+                    timestamp_str = timestamp_str[:-1]  # Remove Z
+                timestamp = datetime.fromisoformat(timestamp_str)
+                
+                # Create database entry
+                traffic_log = TrafficLog(
+                    timestamp=timestamp,
+                    date=timestamp.date(),
+                    log_data=log_entry,
+                    ip_hash=log_entry.get('ip'),
+                    path=log_entry.get('path'),
+                    status_code=log_entry.get('status_code')
+                )
+                
+                db.add(traffic_log)
+                db.commit()
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            logger.error(f"Failed to write log entry to database: {e}")
     
     def _write_log_entry(self, log_filename: Path, log_entry: Dict[str, Any]):
         """Write log entry to file (synchronous)"""
@@ -137,10 +174,41 @@ class TrafficLogger:
             logger.error(f"Failed to write log entry to {log_filename}: {e}")
     
     def cleanup_old_logs(self):
-        """Clean up logs older than retention period"""
+        """Clean up logs older than retention period from both files and database"""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=traffic_config.RETENTION_DAYS)
             
+            # Clean up database entries
+            self._cleanup_database_logs(cutoff_date)
+            
+            # Clean up log files
+            self._cleanup_log_files(cutoff_date)
+                    
+        except Exception as e:
+            logger.error(f"Failed to cleanup old logs: {e}")
+    
+    def _cleanup_database_logs(self, cutoff_date: datetime):
+        """Clean up old traffic logs from database"""
+        try:
+            db = SessionLocal()
+            try:
+                # Delete logs older than cutoff date
+                deleted_count = db.query(TrafficLog).filter(
+                    TrafficLog.timestamp < cutoff_date
+                ).delete()
+                
+                db.commit()
+                logger.info(f"Deleted {deleted_count} old traffic log entries from database")
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            logger.error(f"Failed to cleanup database logs: {e}")
+    
+    def _cleanup_log_files(self, cutoff_date: datetime):
+        """Clean up old log files"""
+        try:
             for log_file in self.log_dir.glob("traffic-*.log"):
                 try:
                     # Extract date from filename
@@ -149,13 +217,13 @@ class TrafficLogger:
                     
                     if file_date < cutoff_date:
                         log_file.unlink()
-                        logger.info(f"Deleted old traffic log: {log_file.name}")
+                        logger.info(f"Deleted old traffic log file: {log_file.name}")
                         
                 except (ValueError, OSError) as e:
                     logger.warning(f"Failed to process log file {log_file}: {e}")
                     
         except Exception as e:
-            logger.error(f"Failed to cleanup old logs: {e}")
+            logger.error(f"Failed to cleanup log files: {e}")
     
     def get_available_log_dates(self) -> list:
         """Get list of available log dates"""

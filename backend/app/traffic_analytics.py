@@ -1,24 +1,53 @@
 # backend/app/traffic_analytics.py
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pathlib import Path
 from collections import defaultdict, Counter
 from typing import Dict, Any, List, Optional
 import logging
+from sqlalchemy.orm import Session
+from sqlalchemy import and_, func
 
 from traffic_config import traffic_config
+from app.database import SessionLocal
+from app.models import TrafficLog
 
 logger = logging.getLogger("traffic_analytics")
 
 class TrafficAnalytics:
-    """Simple traffic analytics processor"""
+    """Traffic analytics processor using database storage"""
     
     def __init__(self):
-        self.log_dir = Path(traffic_config.LOG_DIR)
+        self.log_dir = Path(traffic_config.LOG_DIR)  # Keep for backward compatibility
+    
+    def _get_log_entries_for_date(self, target_date: date) -> List[Dict[str, Any]]:
+        """Get log entries for a specific date from database"""
+        entries = []
+        
+        try:
+            db = SessionLocal()
+            try:
+                # Query database for entries on the specific date
+                logs = db.query(TrafficLog).filter(
+                    TrafficLog.date == target_date
+                ).order_by(TrafficLog.timestamp).all()
+                
+                # Extract log_data from each entry
+                entries = [log.log_data for log in logs]
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            logger.error(f"Failed to get log entries for {target_date}: {e}")
+            # Fallback to file-based reading if database fails
+            entries = self._read_log_file(target_date.strftime("%Y-%m-%d"))
+        
+        return entries
     
     def _read_log_file(self, date_str: str) -> List[Dict[str, Any]]:
-        """Read and parse a specific log file"""
+        """Read and parse a specific log file (fallback method)"""
         log_file = self.log_dir / f"traffic-{date_str}.log"
         entries = []
         
@@ -45,12 +74,16 @@ class TrafficAnalytics:
     
     def get_today_stats(self) -> Dict[str, Any]:
         """Get today's traffic statistics"""
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-        return self.get_daily_stats(today)
+        today = datetime.utcnow().date()
+        return self.get_daily_stats(today.strftime("%Y-%m-%d"))
     
     def get_daily_stats(self, date_str: str) -> Dict[str, Any]:
         """Get traffic statistics for a specific date"""
-        entries = self._read_log_file(date_str)
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            entries = self._get_log_entries_for_date(target_date)
+        except ValueError:
+            return {"error": "Invalid date format"}
         
         if not entries:
             return {
@@ -119,34 +152,61 @@ class TrafficAnalytics:
         }
     
     def get_raw_logs(self, date_str: str) -> str:
-        """Get raw log content for download"""
-        log_file = self.log_dir / f"traffic-{date_str}.log"
-        
+        """Get raw log content for download from database"""
         try:
-            if not log_file.exists():
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            entries = self._get_log_entries_for_date(target_date)
+            
+            if not entries:
                 return ""
             
-            with open(log_file, 'r', encoding='utf-8') as f:
-                return f.read()
-                
+            # Convert log entries back to JSON lines format
+            lines = []
+            for entry in entries:
+                lines.append(json.dumps(entry, separators=(',', ':')))
+            
+            return '\n'.join(lines)
+            
         except Exception as e:
-            logger.error(f"Failed to read raw logs for {date_str}: {e}")
+            logger.error(f"Failed to get raw logs for {date_str}: {e}")
+            # Fallback to file-based method
+            log_file = self.log_dir / f"traffic-{date_str}.log"
+            try:
+                if log_file.exists():
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        return f.read()
+            except Exception as file_error:
+                logger.error(f"Failed to read raw logs from file for {date_str}: {file_error}")
+            
             return ""
     
     def get_available_dates(self) -> List[str]:
-        """Get list of available log dates"""
+        """Get list of available log dates from database"""
         dates = []
         try:
-            for log_file in sorted(self.log_dir.glob("traffic-*.log"), reverse=True):
-                try:
-                    date_str = log_file.stem.replace("traffic-", "")
-                    # Validate date format
-                    datetime.strptime(date_str, "%Y-%m-%d")
-                    dates.append(date_str)
-                except ValueError:
-                    continue
+            db = SessionLocal()
+            try:
+                # Query distinct dates from database
+                db_dates = db.query(TrafficLog.date).distinct().order_by(TrafficLog.date.desc()).all()
+                dates = [date_row[0].strftime("%Y-%m-%d") for date_row in db_dates]
+                
+            finally:
+                db.close()
+                
         except Exception as e:
-            logger.error(f"Failed to get available dates: {e}")
+            logger.error(f"Failed to get available dates from database: {e}")
+            # Fallback to file-based method
+            try:
+                for log_file in sorted(self.log_dir.glob("traffic-*.log"), reverse=True):
+                    try:
+                        date_str = log_file.stem.replace("traffic-", "")
+                        # Validate date format
+                        datetime.strptime(date_str, "%Y-%m-%d")
+                        dates.append(date_str)
+                    except ValueError:
+                        continue
+            except Exception as file_error:
+                logger.error(f"Failed to get available dates from files: {file_error}")
         
         return dates
     
@@ -165,7 +225,7 @@ class TrafficAnalytics:
             total_requests += daily_stats["total_requests"]
             
             # For unique visitors, we need to read raw entries to get IP hashes
-            entries = self._read_log_file(date_str)
+            entries = self._get_log_entries_for_date(date.date())
             for entry in entries:
                 if 'ip' in entry:
                     total_unique_visitors.add(entry['ip'])
