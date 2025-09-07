@@ -62,10 +62,10 @@ class AdminSettings:
             settings[key] = self.get_setting(key)
         return settings
     
-    def update_setting(self, key: str, value: Any) -> bool:
+    def update_setting(self, key: str, value: Any):
         """Update a setting value (not saved until save_setting is called)"""
         if key not in self.DEFAULT_SETTINGS:
-            return False
+            return {"error": f"Setting '{key}' not found"}
         
         config = self.DEFAULT_SETTINGS[key]
         
@@ -74,11 +74,11 @@ class AdminSettings:
             try:
                 value = int(value)
                 if "min" in config and value < config["min"]:
-                    return False
+                    return {"error": f"Value must be at least {config['min']}"}
                 if "max" in config and value > config["max"]:
-                    return False
+                    return {"error": f"Value must be at most {config['max']}"}
             except (ValueError, TypeError):
-                return False
+                return {"error": "Value must be a valid integer"}
         
         # Update the setting (but mark as not saved)
         self._settings[key] = {
@@ -86,12 +86,18 @@ class AdminSettings:
             "saved": False
         }
         
-        return True
+        # Return the full setting object
+        return {
+            "key": key,
+            "current_value": value,
+            "saved": False,
+            **config
+        }
     
-    def save_setting(self, key: str) -> bool:
+    def save_setting(self, key: str):
         """Save a setting value and apply it"""
         if key not in self._settings:
-            return False
+            return {"error": f"Setting '{key}' not found"}
         
         # Mark as saved
         self._settings[key]["saved"] = True
@@ -106,12 +112,18 @@ class AdminSettings:
             except ImportError:
                 logger.warning("traffic_config not available, setting stored but not applied to config")
         
-        return True
+        # Return the full setting object
+        return {
+            "key": key,
+            "current_value": self._settings[key]["value"],
+            "saved": self._settings[key]["saved"],
+            **self.DEFAULT_SETTINGS[key]
+        }
     
-    def reset_setting(self, key: str) -> bool:
+    def reset_setting(self, key: str):
         """Reset a setting to its default value"""
         if key not in self.DEFAULT_SETTINGS:
-            return False
+            return {"error": f"Setting '{key}' not found"}
         
         default_value = self.DEFAULT_SETTINGS[key]["value"]
         self._settings[key] = {
@@ -127,6 +139,14 @@ class AdminSettings:
                 logger.info(f"Reset traffic log retention to default: {default_value} days")
             except ImportError:
                 logger.warning("traffic_config not available, setting stored but not applied to config")
+        
+        # Return the full setting object
+        return {
+            "key": key,
+            "current_value": default_value,
+            "saved": True,
+            **self.DEFAULT_SETTINGS[key]
+        }
         
         return True
 

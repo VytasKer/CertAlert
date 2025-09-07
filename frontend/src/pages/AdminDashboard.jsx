@@ -497,6 +497,12 @@ function ParametersTab() {
       }
       const data = await res.json();
       
+      // Check if it's an error response
+      if (data.error) {
+        setError(`❌ ${data.error}`);
+        return;
+      }
+      
       // Check if it's a debug message
       if (data.message && data.message.includes('temporarily disabled')) {
         setError(`⚠️ ${data.message}`);
@@ -526,6 +532,13 @@ function ParametersTab() {
         return;
       }
       const updatedSetting = await res.json();
+      
+      // Check if it's an error response
+      if (updatedSetting.error) {
+        setError(`❌ ${updatedSetting.error}`);
+        return;
+      }
+      
       setSettings(prev => ({
         ...prev,
         [key]: updatedSetting
@@ -550,6 +563,12 @@ function ParametersTab() {
         return;
       }
       const savedSetting = await res.json();
+      
+      // Check if it's an error response
+      if (savedSetting.error) {
+        setError(`❌ ${savedSetting.error}`);
+        return;
+      }
       
       // Check if it's a debug message
       if (savedSetting.message && savedSetting.message.includes('temporarily disabled')) {
