@@ -496,6 +496,13 @@ function ParametersTab() {
         return;
       }
       const data = await res.json();
+      
+      // Check if it's a debug message
+      if (data.message && data.message.includes('temporarily disabled')) {
+        setError(`⚠️ ${data.message}`);
+        return;
+      }
+      
       setSettings(data);
     } catch (e) {
       setError('Failed to fetch settings');
@@ -543,6 +550,13 @@ function ParametersTab() {
         return;
       }
       const savedSetting = await res.json();
+      
+      // Check if it's a debug message
+      if (savedSetting.message && savedSetting.message.includes('temporarily disabled')) {
+        setError(`⚠️ ${savedSetting.message}`);
+        return;
+      }
+      
       setSettings(prev => ({
         ...prev,
         [key]: savedSetting
