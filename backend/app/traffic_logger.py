@@ -4,13 +4,11 @@ import json
 import hashlib
 import asyncio
 from datetime import datetime, timedelta, date
-from pathlib import Path
 from typing import Dict, Any, Optional
 import logging
 import os
 from fastapi import Request
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
 
 from traffic_config import traffic_config
 from app.database import SessionLocal
@@ -21,28 +19,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("traffic_logger")
 
 class TrafficLogger:
-    """Handles traffic logging to date-based JSON files"""
+    """Handles traffic logging to database only"""
     
     def __init__(self):
-        self.log_dir = Path(traffic_config.LOG_DIR)
-        self.log_dir.mkdir(parents=True, exist_ok=True)
-        self._ensure_log_directory()
-    
-    def _ensure_log_directory(self):
-        """Ensure log directory exists"""
-        try:
-            self.log_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Traffic log directory ready: {self.log_dir}")
-        except Exception as e:
-            logger.error(f"Failed to create traffic log directory: {e}")
-    
-    def _get_log_filename(self, date: datetime = None) -> Path:
-        """Get log filename for specific date"""
-        if date is None:
-            date = datetime.utcnow()
-        
-        date_str = date.strftime("%Y-%m-%d")
-        return self.log_dir / f"traffic-{date_str}.log"
+        logger.info("Traffic logger initialized (database-only mode)")
     
     def _hash_ip(self, ip: str) -> str:
         """Hash IP address for privacy"""
@@ -116,19 +96,15 @@ class TrafficLogger:
     
     async def log_request(self, request: Request, response_status: int = None, 
                          response_time_ms: float = None, user_id: Optional[int] = None):
-        """Log a request asynchronously to both file and database"""
+        """Log a request asynchronously to database only"""
         try:
             if not self._should_log_request(request):
                 return
             
             log_entry = self._create_log_entry(request, response_status, response_time_ms, user_id)
-            log_filename = self._get_log_filename()
             
-            # Write to file asynchronously (for development/debugging)
+            # Write to database asynchronously
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, self._write_log_entry, log_filename, log_entry)
-            
-            # Also write to database asynchronously (for production persistence)
             await loop.run_in_executor(None, self._write_to_database, log_entry)
             
         except Exception as e:
@@ -164,25 +140,13 @@ class TrafficLogger:
         except Exception as e:
             logger.error(f"Failed to write log entry to database: {e}")
     
-    def _write_log_entry(self, log_filename: Path, log_entry: Dict[str, Any]):
-        """Write log entry to file (synchronous)"""
-        try:
-            with open(log_filename, 'a', encoding='utf-8') as f:
-                json.dump(log_entry, f, separators=(',', ':'))
-                f.write('\n')
-        except Exception as e:
-            logger.error(f"Failed to write log entry to {log_filename}: {e}")
-    
     def cleanup_old_logs(self):
-        """Clean up logs older than retention period from both files and database"""
+        """Clean up logs older than retention period from database"""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=traffic_config.RETENTION_DAYS)
             
-            # Clean up database entries
+            # Clean up database entries only
             self._cleanup_database_logs(cutoff_date)
-            
-            # Clean up log files
-            self._cleanup_log_files(cutoff_date)
                     
         except Exception as e:
             logger.error(f"Failed to cleanup old logs: {e}")
@@ -205,40 +169,6 @@ class TrafficLogger:
                 
         except Exception as e:
             logger.error(f"Failed to cleanup database logs: {e}")
-    
-    def _cleanup_log_files(self, cutoff_date: datetime):
-        """Clean up old log files"""
-        try:
-            for log_file in self.log_dir.glob("traffic-*.log"):
-                try:
-                    # Extract date from filename
-                    date_str = log_file.stem.replace("traffic-", "")
-                    file_date = datetime.strptime(date_str, "%Y-%m-%d")
-                    
-                    if file_date < cutoff_date:
-                        log_file.unlink()
-                        logger.info(f"Deleted old traffic log file: {log_file.name}")
-                        
-                except (ValueError, OSError) as e:
-                    logger.warning(f"Failed to process log file {log_file}: {e}")
-                    
-        except Exception as e:
-            logger.error(f"Failed to cleanup log files: {e}")
-    
-    def get_available_log_dates(self) -> list:
-        """Get list of available log dates"""
-        dates = []
-        try:
-            for log_file in sorted(self.log_dir.glob("traffic-*.log")):
-                try:
-                    date_str = log_file.stem.replace("traffic-", "")
-                    dates.append(date_str)
-                except ValueError:
-                    continue
-        except Exception as e:
-            logger.error(f"Failed to get available log dates: {e}")
-        
-        return dates
 
 # Global traffic logger instance
 traffic_logger = TrafficLogger()

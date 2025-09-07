@@ -1,0 +1,126 @@
+# backend/app/admin_settings.py
+
+from sqlalchemy.orm import Session
+from typing import Dict, Any, Optional
+import logging
+from app.database import SessionLocal
+from app.models import TrafficLog
+from traffic_config import traffic_config
+
+logger = logging.getLogger("admin_settings")
+
+class AdminSettings:
+    """Manage admin configurable settings"""
+    
+    # Default settings with their metadata
+    DEFAULT_SETTINGS = {
+        "traffic_log_retention_days": {
+            "value": 30,
+            "type": "integer",
+            "min": 1,
+            "max": 365,
+            "description": "Number of days to retain traffic logs in database",
+            "requires_restart": False
+        }
+    }
+    
+    def __init__(self):
+        # For now, store settings in memory
+        # In a real implementation, you'd store these in a database table
+        self._settings = {}
+        self._load_default_settings()
+    
+    def _load_default_settings(self):
+        """Load default settings values"""
+        for key, config in self.DEFAULT_SETTINGS.items():
+            if key not in self._settings:
+                self._settings[key] = {
+                    "value": config["value"],
+                    "saved": True  # Default values are considered "saved"
+                }
+    
+    def get_setting(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get a specific setting with its metadata"""
+        if key not in self.DEFAULT_SETTINGS:
+            return None
+        
+        config = self.DEFAULT_SETTINGS[key].copy()
+        current = self._settings.get(key, {"value": config["value"], "saved": True})
+        
+        config.update({
+            "current_value": current["value"],
+            "saved": current["saved"],
+            "key": key
+        })
+        
+        return config
+    
+    def get_all_settings(self) -> Dict[str, Any]:
+        """Get all settings with their metadata"""
+        settings = {}
+        for key in self.DEFAULT_SETTINGS:
+            settings[key] = self.get_setting(key)
+        return settings
+    
+    def update_setting(self, key: str, value: Any) -> bool:
+        """Update a setting value (not saved until save_setting is called)"""
+        if key not in self.DEFAULT_SETTINGS:
+            return False
+        
+        config = self.DEFAULT_SETTINGS[key]
+        
+        # Validate the value
+        if config["type"] == "integer":
+            try:
+                value = int(value)
+                if "min" in config and value < config["min"]:
+                    return False
+                if "max" in config and value > config["max"]:
+                    return False
+            except (ValueError, TypeError):
+                return False
+        
+        # Update the setting (but mark as not saved)
+        self._settings[key] = {
+            "value": value,
+            "saved": False
+        }
+        
+        return True
+    
+    def save_setting(self, key: str) -> bool:
+        """Save a setting value and apply it"""
+        if key not in self._settings:
+            return False
+        
+        # Mark as saved
+        self._settings[key]["saved"] = True
+        
+        # Apply the setting to the system
+        if key == "traffic_log_retention_days":
+            # Update the traffic config
+            traffic_config.RETENTION_DAYS = self._settings[key]["value"]
+            logger.info(f"Updated traffic log retention to {self._settings[key]['value']} days")
+        
+        return True
+    
+    def reset_setting(self, key: str) -> bool:
+        """Reset a setting to its default value"""
+        if key not in self.DEFAULT_SETTINGS:
+            return False
+        
+        default_value = self.DEFAULT_SETTINGS[key]["value"]
+        self._settings[key] = {
+            "value": default_value,
+            "saved": True
+        }
+        
+        # Apply the default setting
+        if key == "traffic_log_retention_days":
+            traffic_config.RETENTION_DAYS = default_value
+            logger.info(f"Reset traffic log retention to default: {default_value} days")
+        
+        return True
+
+# Global settings instance
+admin_settings = AdminSettings()

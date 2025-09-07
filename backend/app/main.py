@@ -114,6 +114,7 @@ app.include_router(auth.router)
 app.include_router(subscriptions.router)
 app.include_router(stripe_webhook.router)
 app.include_router(admin_api.router)
+app.include_router(admin_api.settings_router)
 app.include_router(logs_api.router)
 app.include_router(traffic_api.router)  # Add traffic API routes
 

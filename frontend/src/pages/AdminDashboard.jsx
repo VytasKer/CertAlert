@@ -467,8 +467,249 @@ const tabs = [
   { key: 'logs', label: 'Logs' },
   { key: 'traffic', label: 'Traffic Analytics' },
   { key: 'tables', label: 'Database Tables' },
+  { key: 'parameters', label: 'Parameters' },
   { key: 'credits', label: 'App Credits' }
 ];
+
+function ParametersTab() {
+  const [settings, setSettings] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState({});
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('certalert_jwt');
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        setError('Failed to fetch settings: ' + (await res.text()));
+        return;
+      }
+      const data = await res.json();
+      setSettings(data);
+    } catch (e) {
+      setError('Failed to fetch settings');
+    }
+    setLoading(false);
+  };
+
+  const updateSetting = async (key, value) => {
+    try {
+      const token = localStorage.getItem('certalert_jwt');
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ value })
+      });
+      if (!res.ok) {
+        setError('Failed to update setting: ' + (await res.text()));
+        return;
+      }
+      const updatedSetting = await res.json();
+      setSettings(prev => ({
+        ...prev,
+        [key]: updatedSetting
+      }));
+    } catch (e) {
+      setError('Failed to update setting');
+    }
+  };
+
+  const saveSetting = async (key) => {
+    setSaving(prev => ({ ...prev, [key]: true }));
+    try {
+      const token = localStorage.getItem('certalert_jwt');
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}/save`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        setError('Failed to save setting: ' + (await res.text()));
+        return;
+      }
+      const savedSetting = await res.json();
+      setSettings(prev => ({
+        ...prev,
+        [key]: savedSetting
+      }));
+    } catch (e) {
+      setError('Failed to save setting');
+    } finally {
+      setSaving(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const resetSetting = async (key) => {
+    try {
+      const token = localStorage.getItem('certalert_jwt');
+      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}/reset`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        setError('Failed to reset setting: ' + (await res.text()));
+        return;
+      }
+      const resetSetting = await res.json();
+      setSettings(prev => ({
+        ...prev,
+        [key]: resetSetting
+      }));
+    } catch (e) {
+      setError('Failed to reset setting');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' }}>
+        <div style={{ fontSize: 18 }}>Loading settings...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h3>System Parameters</h3>
+      <p style={{ color: '#6b7280', marginBottom: 24 }}>
+        Configure system-wide parameters. Changes are applied after saving.
+      </p>
+      
+      {error && (
+        <div style={{ 
+          background: '#fef2f2', 
+          border: '1px solid #fecaca', 
+          color: '#dc2626', 
+          padding: '12px 16px', 
+          borderRadius: 8, 
+          marginBottom: 24 
+        }}>
+          {error}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {Object.entries(settings).map(([key, setting]) => (
+          <div key={key} style={{ 
+            background: '#fff', 
+            border: '1px solid #e5e7eb', 
+            borderRadius: 8, 
+            padding: '20px' 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <h4 style={{ margin: 0, marginBottom: 4, fontSize: 16, fontWeight: 600 }}>
+                  {setting.description}
+                </h4>
+                <div style={{ fontSize: 14, color: '#6b7280' }}>
+                  Parameter: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>{key}</code>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {setting.saved ? (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px', 
+                    color: '#059669', 
+                    fontSize: 14,
+                    fontWeight: 500
+                  }}>
+                    <span style={{ fontSize: 16 }}>✓</span>
+                    Saved
+                  </div>
+                ) : (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px', 
+                    color: '#d97706', 
+                    fontSize: 14,
+                    fontWeight: 500
+                  }}>
+                    <span style={{ fontSize: 16 }}>●</span>
+                    Not Saved
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: 16 }}>
+              <input
+                type="number"
+                value={setting.current_value}
+                min={setting.min}
+                max={setting.max}
+                onChange={(e) => updateSetting(key, e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: 4,
+                  width: '120px',
+                  fontSize: 14
+                }}
+              />
+              <span style={{ fontSize: 14, color: '#6b7280' }}>
+                (Range: {setting.min} - {setting.max})
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => saveSetting(key)}
+                disabled={setting.saved || saving[key]}
+                style={{
+                  padding: '8px 16px',
+                  background: setting.saved ? '#9ca3af' : '#059669',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: setting.saved ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {saving[key] ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => resetSetting(key)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#6b7280',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer'
+                }}
+              >
+                Reset to Default
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function AppCredits() {
   const appName = 'CertAlert';
@@ -903,6 +1144,7 @@ export default function AdminDashboard() {
           </div>
         )}
         {activeTab === 'tables' && <TablesViewer />}
+        {activeTab === 'parameters' && <ParametersTab />}
         {activeTab === 'credits' && <AppCredits />}
       </div>
     </div>
