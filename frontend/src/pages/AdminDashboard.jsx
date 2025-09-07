@@ -486,7 +486,7 @@ function ParametersTab() {
     setError('');
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/settings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -506,7 +506,7 @@ function ParametersTab() {
   const updateSetting = async (key, value) => {
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/settings/${key}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -532,7 +532,7 @@ function ParametersTab() {
     setSaving(prev => ({ ...prev, [key]: true }));
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}/save`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/settings/${key}/save`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -557,7 +557,7 @@ function ParametersTab() {
   const resetSetting = async (key) => {
     try {
       const token = localStorage.getItem('certalert_jwt');
-      const res = await fetch(`${BACKEND_BASE_URL}/admin/settings/${key}/reset`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/settings/${key}/reset`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

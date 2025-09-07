@@ -9,13 +9,12 @@ from sqlalchemy import text
 import os
 from sqlalchemy import func
 from dotenv import load_dotenv
-from app.admin_settings import admin_settings
 
 load_dotenv()
 ADMIN_LEVEL = os.getenv('ADMIN_LEVEL', 'admin_user')
 
 router = APIRouter(prefix="/database", tags=["Database"])
-settings_router = APIRouter(prefix="/admin", tags=["Admin Settings"])
+settings_router = APIRouter(prefix="/settings", tags=["Admin Settings"])
 
 @router.post("/run-query")
 async def run_query(request: Request, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -111,7 +110,19 @@ async def get_all_settings(current_user: models.User = Depends(get_current_user)
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    return admin_settings.get_all_settings()
+    # Temporary simple response to test if endpoint works
+    return {
+        "traffic_log_retention_days": {
+            "key": "traffic_log_retention_days",
+            "current_value": 30,
+            "saved": True,
+            "description": "Number of days to retain traffic logs in database",
+            "type": "integer",
+            "min": 1,
+            "max": 365,
+            "requires_restart": False
+        }
+    }
 
 @settings_router.put("/settings/{setting_key}")
 async def update_setting(setting_key: str, request: Request, current_user: models.User = Depends(get_current_user)):
@@ -119,13 +130,8 @@ async def update_setting(setting_key: str, request: Request, current_user: model
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    data = await request.json()
-    value = data.get('value')
-    
-    if not admin_settings.update_setting(setting_key, value):
-        raise HTTPException(status_code=400, detail="Invalid setting key or value")
-    
-    return admin_settings.get_setting(setting_key)
+    # Temporary response
+    return {"message": "Feature temporarily disabled for production debugging"}
 
 @settings_router.post("/settings/{setting_key}/save")
 async def save_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
@@ -133,10 +139,8 @@ async def save_setting(setting_key: str, current_user: models.User = Depends(get
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    if not admin_settings.save_setting(setting_key):
-        raise HTTPException(status_code=400, detail="Invalid setting key or setting not updated")
-    
-    return admin_settings.get_setting(setting_key)
+    # Temporary response
+    return {"message": "Feature temporarily disabled for production debugging"}
 
 @settings_router.post("/settings/{setting_key}/reset")
 async def reset_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
@@ -144,7 +148,5 @@ async def reset_setting(setting_key: str, current_user: models.User = Depends(ge
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    if not admin_settings.reset_setting(setting_key):
-        raise HTTPException(status_code=400, detail="Invalid setting key")
-    
-    return admin_settings.get_setting(setting_key)
+    # Temporary response
+    return {"message": "Feature temporarily disabled for production debugging"}

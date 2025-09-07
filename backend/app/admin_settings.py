@@ -3,9 +3,9 @@
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
 import logging
+import os
 from app.database import SessionLocal
 from app.models import TrafficLog
-from traffic_config import traffic_config
 
 logger = logging.getLogger("admin_settings")
 
@@ -98,9 +98,13 @@ class AdminSettings:
         
         # Apply the setting to the system
         if key == "traffic_log_retention_days":
-            # Update the traffic config
-            traffic_config.RETENTION_DAYS = self._settings[key]["value"]
-            logger.info(f"Updated traffic log retention to {self._settings[key]['value']} days")
+            # Update the traffic config if available
+            try:
+                from traffic_config import traffic_config
+                traffic_config.RETENTION_DAYS = self._settings[key]["value"]
+                logger.info(f"Updated traffic log retention to {self._settings[key]['value']} days")
+            except ImportError:
+                logger.warning("traffic_config not available, setting stored but not applied to config")
         
         return True
     
@@ -117,8 +121,12 @@ class AdminSettings:
         
         # Apply the default setting
         if key == "traffic_log_retention_days":
-            traffic_config.RETENTION_DAYS = default_value
-            logger.info(f"Reset traffic log retention to default: {default_value} days")
+            try:
+                from traffic_config import traffic_config
+                traffic_config.RETENTION_DAYS = default_value
+                logger.info(f"Reset traffic log retention to default: {default_value} days")
+            except ImportError:
+                logger.warning("traffic_config not available, setting stored but not applied to config")
         
         return True
 
