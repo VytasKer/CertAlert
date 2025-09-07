@@ -1,8 +1,11 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function SubscribeProcessing() {
+  usePageTitle('CertAlert - Processing Payment');
+  
   const navigate = useNavigate();
   return (
     <div className="start-page">

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import './Start.css'
 import ChangePasswordModal from '../components/ChangePasswordModal'
 import AuthModal from '../components/AuthModal'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
@@ -17,6 +18,8 @@ function Spinner() {
 }
 
 export default function Profile() {
+  usePageTitle('CertAlert - Profile');
+  
   const [showUpload, setShowUpload] = useState(false)
   const [showRestrictModal, setShowRestrictModal] = useState(false)
   const [user, setUser] = useState(null)

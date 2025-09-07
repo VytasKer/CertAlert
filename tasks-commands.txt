@@ -1,8 +1,4 @@
 Critical for MVP:
-- Beautify web app design:
---fix and test flow buttons;
---update cert table to indicate almost expiring certs;
---add informational tips and warning upon uploading certs.
 - open patreon account.
 --add link to support project.
 - open contribee account.
@@ -13,6 +9,10 @@ Next phase:
 - add dark mode.
 
 Completed:
+- Beautify web app design:
+--fix and test flow buttons;
+--update cert table to indicate almost expiring certs;
+--add informational tips and warning upon uploading certs.
 --add text and Subscribe button below cert table.
 --add logo and add flow upon clicking on logo (if not logged in, logo sends to start, otherwise, to Dashboard);
 --create logo;

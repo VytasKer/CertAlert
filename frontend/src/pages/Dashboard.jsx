@@ -7,11 +7,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Start.css' // Reuse the same styles for consistency
 import RestrictModal from '../components/RestrictModal'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
 function Dashboard() {
+  usePageTitle('CertAlert - Dashboard');
+  
   const navigate = useNavigate()
   const [showUpload, setShowUpload] = useState(false)
   const [showRestrictModal, setShowRestrictModal] = useState(false)

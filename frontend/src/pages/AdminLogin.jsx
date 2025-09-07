@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
 export default function AdminLogin() {
+  usePageTitle('CertAlert - Admin Login');
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

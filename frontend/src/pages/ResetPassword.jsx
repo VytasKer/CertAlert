@@ -2,11 +2,14 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
 export default function ResetPassword() {
+  usePageTitle('CertAlert - Reset Password');
+  
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');

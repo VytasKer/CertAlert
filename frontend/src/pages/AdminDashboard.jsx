@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
@@ -654,6 +655,8 @@ function TablesViewer() {
 }
 
 export default function AdminDashboard() {
+  usePageTitle('CertAlert - Admin Dashboard');
+  
   const [activeTab, setActiveTab] = useState('database');
   const [query, setQuery] = useState('SELECT * FROM users');
   const [result, setResult] = useState(null);

@@ -6,8 +6,11 @@ import Footer from '../components/Footer';
 import FloatingInfoBadge from '../components/FloatingInfoBadge';
 import UploadModal from '../components/UploadModal';
 import AuthModal from '../components/AuthModal';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Start() {
+  usePageTitle('CertAlert');
+  
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   useEffect(() => {

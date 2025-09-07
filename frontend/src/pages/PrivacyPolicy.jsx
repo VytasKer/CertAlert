@@ -5,11 +5,14 @@ import AuthModal from '../components/AuthModal';
 import Footer from '../components/Footer';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
 export default function PrivacyPolicy() {
+  usePageTitle('CertAlert - Privacy Policy');
+  
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();

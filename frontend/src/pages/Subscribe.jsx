@@ -6,6 +6,7 @@ import RestrictModal from '../components/RestrictModal';
 import UploadModal from '../components/UploadModal';
 import AuthModal from '../components/AuthModal';
 import './Start.css';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
@@ -42,6 +43,8 @@ const THREE_YEAR_PRICE_ID = import.meta.env.VITE_STRIPE_THREE_YEAR_PRICE_ID;
 const FIVE_YEAR_PRICE_ID = import.meta.env.VITE_STRIPE_FIVE_YEAR_PRICE_ID;
 
 export default function Subscribe() {
+  usePageTitle('CertAlert - Subscribe');
+  
   const navigate = useNavigate();
   const jwt = localStorage.getItem('certalert_jwt');
   const isLoggedIn = !!jwt;
