@@ -104,7 +104,7 @@ async def get_db_overview(current_user: models.User = Depends(get_current_user),
     }
 
 # Settings Management Endpoints
-@settings_router.get("/settings")
+@settings_router.get("/")
 async def get_all_settings(current_user: models.User = Depends(get_current_user)):
     """Get all admin configurable settings"""
     if current_user.level != ADMIN_LEVEL:
@@ -124,7 +124,7 @@ async def get_all_settings(current_user: models.User = Depends(get_current_user)
         }
     }
 
-@settings_router.put("/settings/{setting_key}")
+@settings_router.put("/{setting_key}")
 async def update_setting(setting_key: str, request: Request, current_user: models.User = Depends(get_current_user)):
     """Update a setting value (not saved until save endpoint is called)"""
     if current_user.level != ADMIN_LEVEL:
@@ -133,7 +133,7 @@ async def update_setting(setting_key: str, request: Request, current_user: model
     # Temporary response
     return {"message": "Feature temporarily disabled for production debugging"}
 
-@settings_router.post("/settings/{setting_key}/save")
+@settings_router.post("/{setting_key}/save")
 async def save_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
     """Save a setting value and apply it to the system"""
     if current_user.level != ADMIN_LEVEL:
@@ -142,7 +142,7 @@ async def save_setting(setting_key: str, current_user: models.User = Depends(get
     # Temporary response
     return {"message": "Feature temporarily disabled for production debugging"}
 
-@settings_router.post("/settings/{setting_key}/reset")
+@settings_router.post("/{setting_key}/reset")
 async def reset_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
     """Reset a setting to its default value"""
     if current_user.level != ADMIN_LEVEL:
