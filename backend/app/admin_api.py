@@ -106,17 +106,17 @@ async def get_db_overview(current_user: models.User = Depends(get_current_user),
 
 # Settings Management Endpoints
 @settings_router.get("/")
-async def get_all_settings(current_user: models.User = Depends(get_current_user)):
+async def get_all_settings(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get all admin configurable settings"""
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    admin_settings = AdminSettings()
+    admin_settings = AdminSettings(db)
     return admin_settings.get_all_settings()
 
 @settings_router.put("/{setting_key}")
-async def update_setting(setting_key: str, request: Request, current_user: models.User = Depends(get_current_user)):
-    """Update a setting value (not saved until save endpoint is called)"""
+async def update_setting(setting_key: str, request: Request, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Update a setting value"""
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
@@ -126,29 +126,29 @@ async def update_setting(setting_key: str, request: Request, current_user: model
     if new_value is None:
         raise HTTPException(status_code=400, detail="Value is required")
     
-    admin_settings = AdminSettings()
+    admin_settings = AdminSettings(db)
     updated_setting = admin_settings.update_setting(setting_key, new_value)
     
     return updated_setting
 
 @settings_router.post("/{setting_key}/save")
-async def save_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
-    """Save a setting value and apply it to the system"""
+async def save_setting(setting_key: str, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Save a setting value (for backward compatibility - now settings are saved immediately)"""
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    admin_settings = AdminSettings()
+    admin_settings = AdminSettings(db)
     saved_setting = admin_settings.save_setting(setting_key)
     
     return saved_setting
 
 @settings_router.post("/{setting_key}/reset")
-async def reset_setting(setting_key: str, current_user: models.User = Depends(get_current_user)):
+async def reset_setting(setting_key: str, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Reset a setting to its default value"""
     if current_user.level != ADMIN_LEVEL:
         raise HTTPException(status_code=403, detail="Admin access required.")
     
-    admin_settings = AdminSettings()
+    admin_settings = AdminSettings(db)
     reset_setting = admin_settings.reset_setting(setting_key)
     
     return reset_setting

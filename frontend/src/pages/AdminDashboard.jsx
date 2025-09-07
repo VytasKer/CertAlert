@@ -543,6 +543,11 @@ function ParametersTab() {
         ...prev,
         [key]: updatedSetting
       }));
+      
+      // Show success message briefly
+      const successMsg = `✅ ${key.replace(/_/g, ' ')} updated to ${updatedSetting.current_value}`;
+      setError(successMsg);
+      setTimeout(() => setError(''), 3000);  // Clear after 3 seconds
     } catch (e) {
       setError('Failed to update setting');
     }
@@ -656,31 +661,17 @@ function ParametersTab() {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {setting.saved ? (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '4px', 
-                    color: '#059669', 
-                    fontSize: 14,
-                    fontWeight: 500
-                  }}>
-                    <span style={{ fontSize: 16 }}>✓</span>
-                    Saved
-                  </div>
-                ) : (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '4px', 
-                    color: '#d97706', 
-                    fontSize: 14,
-                    fontWeight: 500
-                  }}>
-                    <span style={{ fontSize: 16 }}>●</span>
-                    Not Saved
-                  </div>
-                )}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '4px', 
+                  color: '#059669', 
+                  fontSize: 14,
+                  fontWeight: 500
+                }}>
+                  <span style={{ fontSize: 16 }}>✓</span>
+                  Saved to Database
+                </div>
               </div>
             </div>
 
@@ -705,22 +696,6 @@ function ParametersTab() {
             </div>
 
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => saveSetting(key)}
-                disabled={setting.saved || saving[key]}
-                style={{
-                  padding: '8px 16px',
-                  background: setting.saved ? '#9ca3af' : '#059669',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 4,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: setting.saved ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {saving[key] ? 'Saving...' : 'Save'}
-              </button>
               <button
                 onClick={() => resetSetting(key)}
                 style={{

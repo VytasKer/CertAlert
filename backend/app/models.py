@@ -105,3 +105,14 @@ class TrafficLog(Base):
     ip_hash = Column(String(64), nullable=True, index=True)  # For efficient IP-based queries
     path = Column(String(255), nullable=True, index=True)  # For efficient path-based queries
     status_code = Column(Integer, nullable=True, index=True)  # For efficient status queries
+
+
+class AdminSetting(Base):
+    """Model for storing admin configurable settings"""
+    __tablename__ = "admin_settings"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    key = Column(String, unique=True, index=True, nullable=False)
+    value = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
