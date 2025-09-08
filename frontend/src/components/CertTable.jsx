@@ -106,7 +106,7 @@ export default function CertTable({ certs = [], blurred, onAction }) {
       {localCerts.length === 0 ? (
         <div className="cert-table-row">
           <span colSpan={7} style={{ textAlign: 'center', width: '2600%' }}>
-            No certificates found.
+            {blurred ? 'Login to see your certificates' : 'No certificates found.'}
           </span>
         </div>
       ) : localCerts.map(cert => (

@@ -11,6 +11,10 @@ import Subscribe from './pages/Subscribe';
 import SubscribeProcessing from './pages/SubscribeProcessing';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+// OAuth pages
+import OAuthSuccess from './pages/OAuth/OAuthSuccess';
+import OAuthError from './pages/OAuth/OAuthError';
+import OAuthLinkAccount from './pages/OAuth/OAuthLinkAccount';
 
 function App() {
   return (
@@ -26,6 +30,10 @@ function App() {
   <Route path="/contact-us" element={<ContactUs />} />
   <Route path="/admin/login" element={<AdminLogin />} />
   <Route path="/admin/dashboard" element={<AdminDashboard />} />
+  {/* OAuth routes */}
+  <Route path="/oauth/success" element={<OAuthSuccess />} />
+  <Route path="/oauth/error" element={<OAuthError />} />
+  <Route path="/oauth/link-account" element={<OAuthLinkAccount />} />
   {/* Catch-all route for unknown URLs */}
   <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

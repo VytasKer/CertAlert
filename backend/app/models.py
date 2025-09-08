@@ -3,7 +3,6 @@
 from sqlalchemy import Column, Integer, BigInteger, String, Text, DateTime, Date, ForeignKey, func, Enum, Boolean, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSON
-#from sqlalchemy.ext.declarative import declarative_base
 from app.database import Base
 import enum
 
@@ -16,6 +15,14 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     level = Column(String(32), nullable=True, default='free_user')
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    
+    # OAuth fields for Google authentication
+    google_id = Column(String(255), nullable=True, index=True)
+    google_email = Column(String(255), nullable=True)
+    profile_picture_url = Column(String(512), nullable=True)
+    auth_provider = Column(String(50), nullable=False, default='local', index=True)
+    email_verified = Column(Boolean, nullable=False, default=False)
+    last_google_sync = Column(DateTime(timezone=True), nullable=True)
 
     certificates = relationship("Certificate", back_populates="owner", cascade="all, delete")
 

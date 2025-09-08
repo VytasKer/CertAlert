@@ -31,3 +31,6 @@ Thumbs.db
 
 # Project management
 tasks.txt
+
+# AI Agent Instructions (keep local to workspace)
+.github/copilot-instructions.md

@@ -14,7 +14,7 @@ class TokenWithUser(BaseModel):
     user: 'UserOut'
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserBase(BaseModel):
     username: str
@@ -34,7 +34,7 @@ class UserOut(UserBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True  # allows conversion from SQLAlchemy model
+        from_attributes = True  # allows conversion from SQLAlchemy model
 
 class UserUpdate(BaseModel):
     username: Optional[str]
@@ -113,4 +113,47 @@ class SubscriptionOut(SubscriptionBase):
     stripe_payment_intent_id: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+# OAuth schemas
+
+class GoogleOAuthResponse(BaseModel):
+    """Response from Google OAuth callback"""
+    access_token: str
+    token_type: str
+    user: UserOut
+
+class LinkGoogleAccountRequest(BaseModel):
+    """Request to link Google account to existing user"""
+    link_token: str
+    password: str
+
+class AccountLinkingResponse(BaseModel):
+    """Response for account linking scenario"""
+    action: str
+    message: str
+    email: str
+    link_token: str
+    existing_user_id: int
+
+class CheckAccountLinkingRequest(BaseModel):
+    """Request to check account linking status"""
+    email: EmailStr
+
+class AccountLinkingStatusResponse(BaseModel):
+    """Response for account linking status check"""
+    email: str
+    has_existing_account: bool
+    auth_provider: Optional[str] = None
+    has_google_linked: bool
+    can_link_google: bool
+    requires_password_verification: bool
+
+class OAuthUserInfo(BaseModel):
+    """OAuth user information"""
+    google_id: Optional[str] = None
+    google_email: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+    auth_provider: str = "local"
+    email_verified: bool = False
+    last_google_sync: Optional[datetime] = None

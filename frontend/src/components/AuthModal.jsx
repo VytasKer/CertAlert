@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { GoogleSignInButton } from './OAuth'
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
@@ -161,8 +162,37 @@ export default function AuthModal({ onClose }) {
                 <button
                   onClick={() => setMode('register')}
                   disabled={loading}
-                  style={{ background: '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 10, cursor: loading ? 'not-allowed' : 'pointer' }}
+                  style={{ background: '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 16, cursor: loading ? 'not-allowed' : 'pointer' }}
                 >Register</button>
+                
+                {/* OAuth Section */}
+                <div style={{ margin: '20px 0', textAlign: 'center' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    margin: '16px 0',
+                    color: '#6b7280',
+                    fontSize: '14px'
+                  }}>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }}></div>
+                    <span style={{ padding: '0 16px' }}>or</span>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }}></div>
+                  </div>
+                  
+                  <GoogleSignInButton
+                    onSuccess={(data) => {
+                      console.log('Google OAuth success:', data);
+                      onClose();
+                    }}
+                    onError={(error) => {
+                      console.error('Google OAuth error:', error);
+                      setError(error.message || 'Google sign-in failed');
+                    }}
+                    disabled={loading}
+                    buttonText="Continue with Google"
+                    variant="outline"
+                  />
+                </div>
               </>
             ) : (
               <div style={{ marginTop: 10 }}>
@@ -293,8 +323,37 @@ export default function AuthModal({ onClose }) {
             <button
               onClick={() => setMode('login')}
               disabled={loading}
-              style={{ background: '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 10, cursor: loading ? 'not-allowed' : 'pointer' }}
+              style={{ background: '#380aab', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', width: '100%', fontWeight: 600, fontSize: 17, marginBottom: 16, cursor: loading ? 'not-allowed' : 'pointer' }}
             >Back</button>
+            
+            {/* OAuth Section */}
+            <div style={{ margin: '20px 0', textAlign: 'center' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                margin: '16px 0',
+                color: '#6b7280',
+                fontSize: '14px'
+              }}>
+                <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }}></div>
+                <span style={{ padding: '0 16px' }}>or</span>
+                <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }}></div>
+              </div>
+              
+              <GoogleSignInButton
+                onSuccess={(data) => {
+                  console.log('Google OAuth success:', data);
+                  onClose();
+                }}
+                onError={(error) => {
+                  console.error('Google OAuth error:', error);
+                  setError(error.message || 'Google sign-in failed');
+                }}
+                disabled={loading}
+                buttonText="Sign up with Google"
+                variant="outline"
+              />
+            </div>
           </>
         )}
       </div>

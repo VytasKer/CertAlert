@@ -723,16 +723,89 @@ function AppCredits() {
   const appName = 'CertAlert';
   const developer = 'VytasKer';
   const version = import.meta.env.VITE_APP_VERSION || '0.0.1-alpha';
+  
+  // Parse version info
+  const isPreRelease = version.includes('-');
+  const versionType = isPreRelease ? version.split('-')[1] : 'release';
+  const versionNumber = isPreRelease ? version.split('-')[0] : version;
+  
+  // Get build info
+  const buildDate = import.meta.env.VITE_BUILD_DATE || 'Unknown';
+  const environment = import.meta.env.MODE || 'production';
+  
+  const getVersionBadgeColor = (type) => {
+    switch (type) {
+      case 'alpha': return '#ff6b6b';
+      case 'beta': return '#ffa726';
+      case 'rc': return '#66bb6a';
+      default: return '#42a5f5';
+    }
+  };
+  
   return (
-    <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 32, maxWidth: 400, margin: '40px auto' }}>
-      <h3>App Credits</h3>
-      <table style={{ width: '100%', fontSize: 18 }}>
+    <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 32, maxWidth: 500, margin: '40px auto' }}>
+      <h3>Application Information</h3>
+      <table style={{ width: '100%', fontSize: 16, borderSpacing: '8px 12px' }}>
         <tbody>
-          <tr><td style={{ fontWeight: 600 }}>App name:</td><td>{appName}</td></tr>
-          <tr><td style={{ fontWeight: 600 }}>Developer:</td><td>{developer}</td></tr>
-          <tr><td style={{ fontWeight: 600 }}>Version:</td><td>{version}</td></tr>
+          <tr>
+            <td style={{ fontWeight: 600, width: '40%' }}>App name:</td>
+            <td>{appName}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>Developer:</td>
+            <td>{developer}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>Version:</td>
+            <td style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px', fontWeight: '600' }}>{versionNumber}</span>
+              {isPreRelease && (
+                <span style={{
+                  backgroundColor: getVersionBadgeColor(versionType),
+                  color: 'white',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase'
+                }}>
+                  {versionType}
+                </span>
+              )}
+            </td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>Environment:</td>
+            <td>
+              <span style={{
+                backgroundColor: environment === 'production' ? '#4caf50' : '#ff9800',
+                color: 'white',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: '600',
+                textTransform: 'uppercase'
+              }}>
+                {environment}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: 600 }}>Build:</td>
+            <td style={{ fontSize: '14px', color: '#666' }}>{buildDate}</td>
+          </tr>
         </tbody>
       </table>
+      
+      <div style={{ marginTop: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px', fontSize: '14px' }}>
+        <strong>Version Notes:</strong>
+        <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+          {versionType === 'alpha' && <li>Early development version - may contain bugs</li>}
+          {versionType === 'beta' && <li>Feature-complete but may have minor issues</li>}
+          {versionType === 'rc' && <li>Release candidate - nearly ready for production</li>}
+          {!isPreRelease && <li>Stable production release</li>}
+        </ul>
+      </div>
     </div>
   );
 }

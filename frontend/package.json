@@ -1,12 +1,14 @@
 {
-  "name": "frontend",
+  "name": "certalert-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && npm run create-spa-fallbacks",
+    "build": "node build-with-timestamp.js && vite build && npm run create-spa-fallbacks",
+    "build:production": "npm run version:check && npm run build",
     "create-spa-fallbacks": "node create-spa-fallbacks.js",
+    "version:check": "node -e \"console.log('Building version:', process.env.npm_package_version)\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },

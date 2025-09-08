@@ -11,6 +11,7 @@ from app import stripe_webhook
 from app import admin_api
 from app import logs_api
 from app import traffic_api  # Import traffic API
+from app import oauth_api  # Import OAuth API
 from app.database import engine
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.database import SessionLocal  # Adjust import if needed
@@ -117,6 +118,7 @@ app.include_router(admin_api.router)
 app.include_router(admin_api.settings_router)
 app.include_router(logs_api.router)
 app.include_router(traffic_api.router)  # Add traffic API routes
+app.include_router(oauth_api.router)  # Add OAuth API routes
 
 @app.get("/", tags=["Root"])  # this creates a route: GET request to "/"
 def read_root():
