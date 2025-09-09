@@ -332,6 +332,12 @@ aria-label={isLoading ? 'Signing in with Google...' : buttonText}
 
 ## 🚀 **Next Steps**
 
+### **⚠️ OAuth Configuration Required**:
+The frontend OAuth implementation is complete, but **Google OAuth credentials need to be configured**:
+- Current status: OAuth shows "your_google_client_id_here" placeholder
+- **Action needed**: Update root `.env` file with real Google Cloud Console credentials
+- **Setup guide**: See `docs/OAUTH_SETUP_GUIDE.md` for complete instructions
+
 ### Production Deployment:
 1. **Update Environment Variables** for production URLs
 2. **Configure Google Cloud Console** with production redirect URIs

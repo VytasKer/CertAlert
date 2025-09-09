@@ -9,6 +9,7 @@ import './Start.css'
 import ChangePasswordModal from '../components/ChangePasswordModal'
 import AuthModal from '../components/AuthModal'
 import { usePageTitle } from '../hooks/usePageTitle'
+import OAuthAccountManager from '../components/OAuthAccountManager'
 
 // Get backend base URL from environment
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || '';
@@ -52,21 +53,27 @@ export default function Profile() {
   const [changePwConfirm, setChangePwConfirm] = useState(false)
   const navigate = useNavigate()
 
+  // Function to fetch user data (extracted for reuse)
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('certalert_jwt');
+      const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch user info');
+      const userData = await res.json();
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      setUser(null);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Fetch user info from backend (run once on mount)
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('certalert_jwt');
-        const res = await fetch(`${BACKEND_BASE_URL}/auth/user`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Failed to fetch user info');
-        setUser(await res.json());
-      } catch {
-        setUser(null);
-      }
-    };
-    fetchUser();
+    fetchUserData();
   }, []);
 
   useEffect(() => {
@@ -201,6 +208,20 @@ export default function Profile() {
               width: '100%'
             }}
           >Settings</button>
+          <button
+            onClick={() => setActiveTab('oauth')}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontWeight: activeTab === 'oauth' ? 700 : 400,
+              fontSize: 18,
+              marginBottom: 18,
+              color: activeTab === 'oauth' ? '#2563eb' : '#222',
+              cursor: 'pointer',
+              textAlign: 'left',
+              width: '100%'
+            }}
+          >Account Connections</button>
           <div style={{ flex: 1 }} />
           <button
             onClick={handleLogout}
@@ -311,6 +332,14 @@ export default function Profile() {
                 loading={deactivateLoading}
               />
               {deactivateError && <div style={{ color: '#dc3545', marginTop: 12 }}>{deactivateError}</div>}
+            </>
+          )}
+          {activeTab === 'oauth' && (
+            <>
+              <OAuthAccountManager 
+                user={user} 
+                onUserUpdate={fetchUserData}
+              />
             </>
           )}
         </div>
