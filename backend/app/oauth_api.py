@@ -24,15 +24,20 @@ FRONTEND_LOGIN_ERROR_URL = f"{FRONTEND_BASE_URL}/oauth/error"
 @router.get("/google/login")
 def google_login(
     state: Optional[str] = Query(None, description="CSRF state parameter"),
-    redirect_uri: Optional[str] = Query(None, description="Custom redirect URI")
+    redirect_uri: Optional[str] = Query(None, description="Custom redirect URI"),
+    format: Optional[str] = Query("json", description="Response format: 'json' or 'redirect'")
 ):
     """
     Initiate Google OAuth login flow.
-    Returns the Google authorization URL that the frontend should redirect to.
     
     Parameters:
     - state: Optional CSRF protection parameter
     - redirect_uri: Optional custom redirect URI (must be whitelisted)
+    - format: Response format - 'json' returns authorization URL, 'redirect' performs HTTP redirect
+    
+    Returns:
+    - If format=json: JSON with authorization_url
+    - If format=redirect: HTTP 302 redirect to Google OAuth
     """
     try:
         # Validate redirect URI if provided
@@ -58,11 +63,18 @@ def google_login(
         
         logger.info(f"Google OAuth login initiated with state: {state[:8]}...")
         
-        return {
-            "authorization_url": authorization_url,
-            "state": state,
-            "message": "Redirect user to this URL to start Google OAuth flow"
-        }
+        # Handle different response formats
+        if format.lower() == "redirect":
+            # Perform direct HTTP redirect to Google OAuth
+            logger.info(f"Performing direct redirect to Google OAuth")
+            return RedirectResponse(url=authorization_url, status_code=302)
+        else:
+            # Return JSON response (default behavior)
+            return {
+                "authorization_url": authorization_url,
+                "state": state,
+                "message": "Redirect user to this URL to start Google OAuth flow"
+            }
     except HTTPException:
         raise
     except Exception as e:
