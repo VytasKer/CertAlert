@@ -8,13 +8,24 @@ Safe for automated deployment - checks before applying changes
 import sys
 import os
 
-# Add the parent directory to the Python path to import app modules
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Change to the backend directory to ensure proper module imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.dirname(script_dir)
+os.chdir(backend_dir)
+
+# Add the backend directory to Python path
+sys.path.insert(0, backend_dir)
+
+# Debug information for production troubleshooting
+print(f"🔍 Script directory: {script_dir}")
+print(f"🔍 Backend directory: {backend_dir}")
+print(f"🔍 Changed working directory to: {os.getcwd()}")
 
 try:
     from app.database import engine
     from sqlalchemy import text, inspect
     import logging
+    print("✅ Successfully imported required modules")
     
     # Set up logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

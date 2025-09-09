@@ -1,4 +1,4 @@
-0.1.1
-Updated: 2025-09-10 00:25:31
+0.1.2
+Updated: 2025-09-10 00:29:48
 Type: patch
-Previous: 0.1.0
+Previous: 0.1.1
