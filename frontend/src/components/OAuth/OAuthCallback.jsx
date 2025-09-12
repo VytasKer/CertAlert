@@ -17,6 +17,18 @@ const OAuthCallback = ({ onAuthSuccess, onAuthError, onAccountLinkingRequired })
         const urlParams = new URLSearchParams(location.search);
         const action = urlParams.get('action');
         const error = urlParams.get('error');
+        const token = urlParams.get('token');
+        
+        // Debug logging
+        console.log('OAuth Callback - URL search params:', location.search);
+        console.log('OAuth Callback - Parsed params:', {
+          action,
+          error,
+          token: token ? `${token.substring(0, 20)}...` : null,
+          user_id: urlParams.get('user_id'),
+          email: urlParams.get('email'),
+          provider: urlParams.get('provider')
+        });
 
         // Handle different OAuth callback scenarios
         if (error) {
@@ -71,8 +83,12 @@ const OAuthCallback = ({ onAuthSuccess, onAuthError, onAccountLinkingRequired })
     );
 
     // Store authentication token
+    console.log('OAuth Success - Storing token:', data.token ? `${data.token.substring(0, 20)}...` : 'NO TOKEN');
     if (data.token) {
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('certalert_jwt', data.token);
+      console.log('OAuth Success - Token stored in localStorage with key "certalert_jwt"');
+    } else {
+      console.error('OAuth Success - No token received!');
     }
 
     // Clear OAuth session data

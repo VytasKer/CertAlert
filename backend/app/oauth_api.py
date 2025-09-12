@@ -168,8 +168,10 @@ async def google_callback(
                     "email": result["user"]["email"],
                     "provider": "google"
                 })
+                redirect_url = f"{FRONTEND_LOGIN_SUCCESS_URL}?{success_params}"
+                logger.info(f"Redirecting to frontend success URL: {redirect_url}")
                 return RedirectResponse(
-                    url=f"{FRONTEND_LOGIN_SUCCESS_URL}?{success_params}",
+                    url=redirect_url,
                     status_code=status.HTTP_302_FOUND
                 )
             else:

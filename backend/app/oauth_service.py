@@ -9,10 +9,10 @@ from app.database import get_db
 from app import models, crud
 from app.auth import create_access_token, get_password_hash
 from fastapi import HTTPException, status
-from dotenv import load_dotenv
 import logging
 
-load_dotenv()
+# Import config to ensure environment variables are loaded
+from app.config import SecurityConfig
 
 logger = logging.getLogger("oauth_service")
 
@@ -136,7 +136,7 @@ class GoogleOAuthService:
             }
         
         # Create new user from Google OAuth
-        new_user_id = crud.generate_random_user_id(db)
+        new_user_id = crud.generate_unique_user_id(db)
         
         # Generate a dummy password hash (Google users won't use password login)
         dummy_password = get_password_hash(f"google_oauth_{google_id}")

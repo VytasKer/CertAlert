@@ -10,12 +10,12 @@ from app import models
 from app import schemas
 from datetime import datetime, timedelta
 import os
-from dotenv import load_dotenv
 from passlib.context import CryptContext
 from app.notifications import send_email
 import logging
 
-load_dotenv()
+# Import config to ensure environment variables are loaded
+from app.config import SecurityConfig
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -77,6 +77,17 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
+    
+    # Debug logging for JWT creation
+    logger.debug(f"Creating JWT token with SECRET_KEY present: {bool(SECRET_KEY)}")
+    logger.debug(f"SECRET_KEY type: {type(SECRET_KEY)}")
+    
+    if not SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="SECRET_KEY not configured"
+        )
+    
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # --- Password Reset/Change ---
