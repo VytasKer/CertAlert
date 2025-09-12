@@ -30,9 +30,13 @@
   overflow: hidden;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .header-actions button {
-  margin-left: 1rem;
-  margin-right: 1rem;
   padding: 0.8rem 1.5rem;
   background: #3b82f6;
   color: #fff;

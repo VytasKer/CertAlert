@@ -40,3 +40,46 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Login and CTA Button Styles */
+.login-cta-button {
+  font-size: 1.1em;
+  padding: 0.8em 2em;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid #646cff;
+  background-color: #646cff;
+  color: white;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.2);
+  width: 100%;
+  font-family: inherit;
+}
+
+.login-cta-button:hover {
+  background-color: transparent;
+  color: #646cff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(100, 108, 255, 0.25);
+}
+
+.login-cta-button:active {
+  transform: translateY(0);
+}
+
+/* Ensure buttons are visible and properly displayed */
+.start-page button {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal OAuth section styling */
+.modal .google-signin-btn {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  text-align: center;
+}

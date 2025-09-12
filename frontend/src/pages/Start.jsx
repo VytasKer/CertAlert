@@ -8,18 +8,19 @@ import UploadModal from '../components/UploadModal';
 import AuthModal from '../components/AuthModal';
 import { GoogleSignInButton } from '../components/OAuth';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Start() {
   usePageTitle('CertAlert');
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const { isLoggedIn, isLoading, logout } = useAuth();
+
   useEffect(() => {
-    localStorage.removeItem('certalert_jwt');
-    localStorage.removeItem('certalert_user_id');
-    // Add any other session keys you use here
+    // Clear authentication on Start page load since this is the landing page
+    logout();
   }, []);
-  const isLoggedIn = !!localStorage.getItem('certalert_jwt');
 
   return (
     <div className="start-page">
@@ -37,11 +38,13 @@ export default function Start() {
         }} />
       </div>
       <Welcome />
-      {!isLoggedIn && (
+      {!isLoading && !isLoggedIn && (
         <div style={{ 
           textAlign: 'center', 
           margin: '2rem 0',
-          padding: '1rem'
+          padding: '1rem',
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 0.3s ease-in-out'
         }}>
           <div style={{ 
             display: 'flex', 
@@ -54,27 +57,6 @@ export default function Start() {
             <button 
               onClick={() => setShowAuthModal(true)}
               className="login-cta-button"
-              style={{
-                fontSize: '1.1em',
-                padding: '0.8em 2em',
-                fontWeight: '600',
-                borderRadius: '8px',
-                border: '2px solid #646cff',
-                backgroundColor: '#646cff',
-                color: 'white',
-                cursor: 'pointer',
-                transition: 'all 0.25s ease',
-                boxShadow: '0 4px 8px rgba(100, 108, 255, 0.2)',
-                width: '100%'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.color = '#646cff';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.backgroundColor = '#646cff';
-                e.target.style.color = 'white';
-              }}
             >
               Login to Get Started
             </button>

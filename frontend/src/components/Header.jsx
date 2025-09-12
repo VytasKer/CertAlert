@@ -1,12 +1,15 @@
 import logoHeader from '../../resources/certalert-logo-header.jpg';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+
 // Usage:
 // - In Dashboard: pass onUpload (shows upload modal), profileButton=true, onProfile (shows profile modal)
 // - In Start: pass onUpload (shows auth modal), onLogin (shows auth modal), profileButton not set
 export default function Header({ onUpload, profileButton, onProfile, onLogin, dashboardButton, onDashboard, showButtons = true }) {
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem('certalert_jwt');
+  const { isLoggedIn } = useAuth();
+
   const handleLogoClick = () => {
     if (isLoggedIn) navigate('/dashboard');
     else navigate('/start');
