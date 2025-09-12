@@ -213,6 +213,12 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
             logger.info(f"Webhook request - skipping origin validation: {path}")
             return True
         
+        # Skip for OAuth callbacks (server-to-server redirects from OAuth providers)
+        oauth_paths = ['/oauth/google/callback', '/oauth/github/callback', '/oauth']
+        if any(path.startswith(op) for op in oauth_paths):
+            logger.info(f"OAuth callback request - skipping origin validation: {path}")
+            return True
+        
         # Skip for static files
         static_extensions = ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.woff', '.woff2']
         if any(path.endswith(ext) for ext in static_extensions):
