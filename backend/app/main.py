@@ -18,7 +18,7 @@ from app.database import SessionLocal  # Adjust import if needed
 from app.notifications import notify_users_of_expiring_certs
 from datetime import datetime, timedelta
 import os
-from dotenv import load_dotenv
+from app.env_loader import load_env
 from passlib.context import CryptContext
 
 # Import the origin validation middleware
@@ -32,7 +32,7 @@ from app.traffic_logger import traffic_logger
 models.Base.metadata.create_all(bind=engine)
 
 # Create admin user on startup if not exists
-load_dotenv()
+load_env()
 ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')

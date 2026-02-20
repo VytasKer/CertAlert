@@ -9,9 +9,9 @@ from app import models
 from sqlalchemy import text
 import os
 from sqlalchemy import func
-from dotenv import load_dotenv
+from app.env_loader import load_env
 
-load_dotenv()
+load_env()
 ADMIN_LEVEL = os.getenv('ADMIN_LEVEL', 'admin_user')
 
 router = APIRouter(prefix="/database", tags=["Database"])

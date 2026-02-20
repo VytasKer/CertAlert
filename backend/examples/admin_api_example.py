@@ -7,10 +7,14 @@ This demonstrates both the required headers and error handling.
 
 import requests
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv(dotenv_path="../../.env")
+root = Path(__file__).resolve().parents[2]
+local_env = root / ".env.local"
+default_env = root / ".env"
+load_dotenv(dotenv_path=str(local_env if local_env.exists() else default_env))
 
 # Configuration
 BASE_URL = os.getenv('BACKEND_BASE_URL', 'http://localhost:8000')
@@ -133,3 +137,5 @@ if __name__ == "__main__":
     
     print("Note: Some endpoints may not exist yet or may require additional authentication (JWT tokens).")
     print("This example shows how to structure your requests with the new middleware.")
+
+

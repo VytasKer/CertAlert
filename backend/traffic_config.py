@@ -2,9 +2,9 @@
 
 import os
 from typing import List
-from dotenv import load_dotenv
+from app.env_loader import load_env
 
-load_dotenv()
+load_env()
 
 class TrafficConfig:
     """Configuration for traffic logging system"""
@@ -46,3 +46,4 @@ class TrafficConfig:
 
 # Global configuration instance
 traffic_config = TrafficConfig()
+

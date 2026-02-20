@@ -5,12 +5,12 @@ from fastapi import APIRouter, Request, HTTPException, status, Depends
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app import models
-from dotenv import load_dotenv
+from app.env_loader import load_env
 import logging
 
 logger = logging.getLogger("webhook")
 
-load_dotenv()
+load_env()
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 STRIPE_WEBHOOK_SECRET_THIN = os.getenv('STRIPE_WEBHOOK_SECRET_THIN')
 STRIPE_WEBHOOK_SECRET_SNAPSHOT = os.getenv('STRIPE_WEBHOOK_SECRET_SNAPSHOT')
@@ -136,3 +136,4 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         logger.info(f"Unhandled Stripe event type: {event.get('type')}")
 
     return {"status": "success", "event_type": event.get('type')}
+

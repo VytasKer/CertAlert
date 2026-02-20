@@ -7,12 +7,12 @@ from sqlalchemy.orm import Session
 from app import models
 from app.utils import days_until_expiry
 import os
-from dotenv import load_dotenv
+from app.env_loader import load_env
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
-load_dotenv()
+load_env()
 
 # Hardcoded alert days for MVP
 ALERT_DAYS = [30, 14, 7, 5, 4, 3, 2, 1]

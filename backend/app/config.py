@@ -2,24 +2,9 @@
 
 import os
 from typing import List, Optional
-from dotenv import load_dotenv
-import sys
+from app.env_loader import load_env
 
-# Determine the correct path to the .env file
-if os.path.exists("../../.env"):
-    env_path = "../../.env"
-elif os.path.exists("../.env"):
-    env_path = "../.env"
-elif os.path.exists(".env"):
-    env_path = ".env"
-else:
-    # Look for .env in the CertAlert root directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(os.path.dirname(current_dir))
-    env_path = os.path.join(project_root, ".env")
-
-# Load environment variables
-load_dotenv(dotenv_path=env_path)
+load_env()
 
 class SecurityConfig:
     """Configuration class for origin validation and security settings"""

@@ -1,10 +1,10 @@
 # backend/app/stripe_utils.py
 import os
 import stripe
-from dotenv import load_dotenv
+from app.env_loader import load_env
 
 # Load environment variables from .env
-load_dotenv()
+load_env()
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 stripe.api_key = STRIPE_SECRET_KEY

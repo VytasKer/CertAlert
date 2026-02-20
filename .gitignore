@@ -34,3 +34,10 @@ tasks.txt
 
 # AI Agent Instructions (keep local to workspace)
 .github/copilot-instructions.md
+
+# Local secret envs
+.env.local
+.env.production.local
+frontend/.env.local
+frontend/.env.production.local
+
