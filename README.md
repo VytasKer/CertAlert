@@ -2,7 +2,7 @@
 
 A comprehensive certificate monitoring platform with React frontend and FastAPI backend, featuring traffic analytics, admin controls, and multi-layered security.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ### Backend (FastAPI + SQLAlchemy)
 - **Framework**: FastAPI with SQLAlchemy ORM
@@ -17,7 +17,7 @@ A comprehensive certificate monitoring platform with React frontend and FastAPI 
 - **Deployment**: Static site with SPA fallback routing
 - **Environment**: Separate configs for development and production
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Development Setup
 
@@ -60,7 +60,7 @@ VITE_STRIPE_YEARLY_PRICE_ID=price_...
 VITE_ADMIN_API_KEY=your-admin-api-key
 ```
 
-## 🔒 Security Architecture
+## Security Architecture
 
 ### Middleware Stack (Order Critical)
 1. **CORS Middleware**: Handles cross-origin requests
@@ -77,7 +77,7 @@ VITE_ADMIN_API_KEY=your-admin-api-key
 - Admin credentials configured via environment variables
 - Admin routes protected by origin validation middleware
 
-## 💳 Stripe Integration
+## Stripe Integration
 
 ### Payment Flow
 1. Frontend displays pricing with environment-based price IDs
@@ -93,7 +93,7 @@ VITE_ADMIN_API_KEY=your-admin-api-key
 - All events logged regardless of processing outcome
 - DEV_MODE allows unsigned webhooks for testing
 
-## 📊 Traffic Monitoring
+## Traffic Monitoring
 
 ### Database-Only Logging
 - All requests stored in `traffic_logs` table
@@ -108,7 +108,7 @@ VITE_ADMIN_API_KEY=your-admin-api-key
 - Response time monitoring
 - Path-based analytics
 
-## 🗄️ Database Management
+## Database Management
 
 ### Migration Pattern
 Uses direct SQLAlchemy table creation (not Alembic) for production reliability:
@@ -128,7 +128,7 @@ with engine.connect() as conn:
 - **TrafficLog**: Analytics data with JSON storage
 - **AdminSetting**: Configurable system parameters
 
-## 🛠️ Production Deployment
+## Production Deployment
 
 ### Render.com Configuration
 
@@ -152,7 +152,7 @@ cd frontend && npm ci && npm run build
 - Frontend uses `VITE_` prefixed variables
 - Backend config loading handles multiple env paths
 
-## 🎛️ Admin Dashboard
+## Admin Dashboard
 
 ### Features
 - **Database Management**: Direct SQL query execution
@@ -165,7 +165,7 @@ cd frontend && npm ci && npm run build
 - API key authentication for admin operations
 - Settings changes persist immediately to database
 
-## 📝 Development Patterns
+## Development Patterns
 
 ### Error Handling
 - Database operations use try/catch with rollback
@@ -197,7 +197,7 @@ frontend/
 └── public/             # Static assets
 ```
 
-## 📚 Documentation
+## Documentation
 
 ### Quick Reference
 - **[Complete Documentation Index](docs/INDEX.md)** - Navigate all available documentation
@@ -216,7 +216,7 @@ docs/
 └── VERSION_GUIDE.md                # Version management system
 ```
 
-## 🧪 Testing & Debugging
+## Testing & Debugging
 
 ### Local Development
 - SQLite database in project root
@@ -229,7 +229,7 @@ docs/
 - Error logging with comprehensive details
 - Webhook event logging for payment debugging
 
-## 📋 Key Commands
+## Key Commands
 
 ### Database Operations
 ```bash
@@ -255,7 +255,7 @@ npm run dev
 npm run build
 ```
 
-## 🔧 Configuration Reference
+## Configuration Reference
 
 ### Critical Environment Variables
 - `DATABASE_URL`: Database connection string
